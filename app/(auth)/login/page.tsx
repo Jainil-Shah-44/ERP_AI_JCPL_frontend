@@ -44,6 +44,9 @@ export default function Login() {
     // ✅ Store access token ONLY in memory
     setAccessToken(data.access_token);
 
+    // 🔥 THIS WAS MISSING
+  localStorage.setItem("access_token", data.access_token);
+
     // ✅ Show success toast on login page
     setShowSuccess(true);
 

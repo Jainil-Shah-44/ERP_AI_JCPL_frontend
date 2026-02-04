@@ -1,99 +1,67 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import Button from "@/components/ui/Button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import {
+  getRawMaterials,
+  deleteRawMaterial,
+  RawMaterialMaster,
+} from "@/services/rawmaterialmaster.service";
 
-export default function RawMaterialMaster() {
-    const [form, setForm] = useState({
-        item_Name: "",
-        item_desc: "",
-        item_group: "",
-        item_category: ""
-    });
+export default function RawMaterialMasterListPage() {
+  const [items, setItems] = useState<RawMaterialMaster[]>([]);
 
-    const handleChange = (e: any) => {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
-    };
+  const load = async () => {
+    setItems(await getRawMaterials());
+  };
 
-    const handleSubmit = () => {
-        console.log("Submit PR:", form);
-    };
+  useEffect(() => {
+    load();
+  }, []);
 
-    return (
-        <div className="p-6 bg-gray-50 min-h-[calc(100vh-64px)]">
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this raw material?")) return;
+    await deleteRawMaterial(id);
+    load();
+  };
 
-            {/* Title */}
-            <div className="mb-6">
-                <h1 className="text-2xl font-semibold text-gray-800">
-                    Raw Material Master
-                </h1>
-                <p className="text-sm text-gray-500">
-                    Create a new Raw Material 
-                </p>
-            </div>
+  return (
+    <div className="p-6">
+      <div className="flex justify-between mb-4">
+        <h1 className="text-xl font-semibold">Raw Material Master</h1>
+        <Link href="/dashboard/master/rawmaterialmaster/create">
+          <Button title="Add Material" />
+        </Link>
+      </div>
 
-            {/* Card */}
-            <div className="bg-white border rounded-lg p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    {/* Unit Name */}
-                    <div>
-                        <Label>Item Name</Label>
-                        <Input
-                            type="text"
-                            name="item_Name"
-                            value={form.item_Name}
-                            onChange={handleChange}
-                            placeholder="Search or enter code" />
-                    </div>
-
-                    {/* Convert */}
-                    <div>
-                        <Label>Item Description </Label>
-                        <Input
-                            type="text"
-                            name="item_desc"
-                            value={form.item_desc}
-                            onChange={handleChange}
-                            placeholder="Search or enter code" />
-                    </div>
-
-                     {/* Convert */}
-                    <div>
-                        <Label>Item Group </Label>
-                        <Input
-                            type="text"
-                            name="item_group"
-                            value={form.item_group}
-                            onChange={handleChange}
-                            placeholder="Search or enter code" />
-                    </div>
-
-                      {/* Convert */}
-                    <div>
-                        <Label>Item Category </Label>
-                        <Input
-                            type="text"
-                            name="item_category"
-                            value={form.item_category}
-                            onChange={handleChange}
-                            placeholder="Search or enter code" />
-                    </div>
-                   
-                </div>
-                {/* Buttons */}
-                <div className="flex gap-4 mt-8 border-t pt-6">
-                    <Button
-                        title="Save"
-                        variant="primary"
-                        className="sm"
-                        onClick={handleSubmit}
-                    />
-                </div>
-            </div>
-        </div>
-    );
+      <table className="w-full border">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="border p-2">Code</th>
+            <th className="border p-2">Name</th>
+            <th className="border p-2">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {items.map((m) => (
+            <tr key={m.id}>
+              <td className="border p-2">{m.material_code}</td>
+              <td className="border p-2">{m.material_name}</td>
+              <td className="border p-2 flex gap-2">
+                <Link href={`/dashboard/master/rawmaterialmaster/${m.id}`}>
+                  <Button title="Edit" variant="secondary" />
+                </Link>
+                <Button
+                  title="Delete"
+                  variant="danger"
+                  onClick={() => handleDelete(m.id)}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
