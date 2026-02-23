@@ -1,6 +1,7 @@
 import { apiFetch } from "@/lib/api";
 
 export type RawMaterialMaster = {
+  
   id: string;
   material_code: string;
   material_name: string;

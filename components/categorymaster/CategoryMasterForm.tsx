@@ -4,6 +4,7 @@ import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import MasterFormLayout from "@/components/layout/MasterFormLayout";
 
 type CategoryFormData = {
   name: string;
@@ -28,51 +29,44 @@ export default function CategoryMasterForm({
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await onSubmit({
-        name,
-        description,
-      });
+      await onSubmit({ name, description });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white border rounded-lg p-6 max-w-xl">
-      <div className="grid grid-cols-1 gap-6">
-        {/* Category Name */}
-        <div>
-          <Label htmlFor="name">Category Name</Label>
-          <Input
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Enter category name"
-          />
-        </div>
-
-        {/* Category Description */}
-        <div>
-          <Label htmlFor="description">Category Description</Label>
-          <Input
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Optional description"
-          />
-        </div>
-      </div>
-
-      {/* Actions */}
-      <div className="mt-6 flex gap-4 border-t pt-6">
+    <MasterFormLayout
+      title="Category Master"
+      description="Create and manage item categories"
+      actions={
         <Button
-          title={loading ? "Saving..." : "Save"}
+          title={loading ? "Saving..." : "Save Category"}
           variant="primary"
-          className="sm"
           onClick={handleSubmit}
           disabled={loading || !name.trim()}
         />
+      }
+    >
+      <div>
+        <Label>Category Name</Label>
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Enter category name"
+        />
       </div>
-    </div>
+
+      <div className="md:col-span-2">
+        <Label>Category Description</Label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Optional description"
+          rows={3}
+          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+        />
+      </div>
+    </MasterFormLayout>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import MasterFormLayout from "@/components/layout/MasterFormLayout";
 
 type WarehouseFormData = {
   name: string;
@@ -18,7 +19,10 @@ type Props = {
   onSubmit: (data: WarehouseFormData) => Promise<void>;
 };
 
-export default function WarehouseMasterForm({ initialData, onSubmit }: Props) {
+export default function WarehouseMasterForm({
+  initialData,
+  onSubmit,
+}: Props) {
   const [form, setForm] = useState<WarehouseFormData>({
     name: initialData?.name || "",
     location: initialData?.location || "",
@@ -44,65 +48,74 @@ export default function WarehouseMasterForm({ initialData, onSubmit }: Props) {
   };
 
   return (
-    <div className="bg-white border rounded-lg p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <div>
-          <Label>Warehouse Name</Label>
-          <Input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div>
-          <Label>Location</Label>
-          <Input
-            name="location"
-            value={form.location}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <Label>State</Label>
-          <Input
-            name="state"
-            value={form.state}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <Label>Pincode</Label>
-          <Input
-            name="pincode"
-            value={form.pincode}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <Label>Incharge</Label>
-          <Input
-            name="incharge"
-            value={form.incharge}
-            onChange={handleChange}
-          />
-        </div>
-
-      </div>
-
-      <div className="flex gap-4 mt-8 border-t pt-6">
+    <MasterFormLayout
+      title="Warehouse Master"
+      description="Create and manage warehouse details"
+      actions={
         <Button
-          title={loading ? "Saving..." : "Save"}
+          title={loading ? "Saving..." : "Save Warehouse"}
           variant="primary"
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || !form.name.trim()}
+        />
+      }
+    >
+      {/* Warehouse Name */}
+      <div className="md:col-span-2">
+        <Label>Warehouse Name</Label>
+        <Input
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          placeholder="Enter warehouse name"
         />
       </div>
-    </div>
+
+      {/* Location Section */}
+      <h2 className="text-md font-semibold text-gray-700 md:col-span-2">
+        Location Details
+      </h2>
+
+      <div>
+        <Label>Location</Label>
+        <Input
+          name="location"
+          value={form.location}
+          onChange={handleChange}
+          placeholder="Enter city / area"
+        />
+      </div>
+
+      <div>
+        <Label>State</Label>
+        <Input
+          name="state"
+          value={form.state}
+          onChange={handleChange}
+          placeholder="Enter state"
+        />
+      </div>
+
+      <div>
+        <Label>Pincode</Label>
+        <Input
+          type="number"
+          name="pincode"
+          value={form.pincode}
+          onChange={handleChange}
+          placeholder="Enter pincode"
+        />
+      </div>
+
+      <div>
+        <Label>Incharge Person</Label>
+        <Input
+          name="incharge"
+          value={form.incharge}
+          onChange={handleChange}
+          placeholder="Enter incharge name"
+        />
+      </div>
+    </MasterFormLayout>
   );
 }

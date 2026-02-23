@@ -4,6 +4,7 @@ import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import MasterFormLayout from "@/components/layout/MasterFormLayout";
 
 type GroupFormData = {
   name: string;
@@ -15,7 +16,10 @@ type Props = {
   onSubmit: (data: GroupFormData) => Promise<void>;
 };
 
-export default function GroupMasterForm({ initialData, onSubmit }: Props) {
+export default function GroupMasterForm({
+  initialData,
+  onSubmit,
+}: Props) {
   const [form, setForm] = useState<GroupFormData>({
     name: initialData?.name || "",
     description: initialData?.description || "",
@@ -23,7 +27,9 @@ export default function GroupMasterForm({ initialData, onSubmit }: Props) {
 
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -38,38 +44,39 @@ export default function GroupMasterForm({ initialData, onSubmit }: Props) {
   };
 
   return (
-    <div className="bg-white border rounded-lg p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <div>
-          <Label>Item Group Master</Label>
-          <Input
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div>
-          <Label>Item Description</Label>
-          <Input
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-          />
-        </div>
-
-      </div>
-
-      <div className="flex gap-4 mt-8 border-t pt-6">
+    <MasterFormLayout
+      title="Item Group Master"
+      description="Create and manage item groups"
+      actions={
         <Button
-          title={loading ? "Saving..." : "Save"}
+          title={loading ? "Saving..." : "Save Group"}
           variant="primary"
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || !form.name.trim()}
+        />
+      }
+    >
+      <div>
+        <Label>Item Group Name</Label>
+        <Input
+          name="name"
+          value={form.name}
+          onChange={handleChange}
+          placeholder="Enter item group name"
         />
       </div>
-    </div>
+
+      <div className="md:col-span-2">
+        <Label>Description</Label>
+        <textarea
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          rows={3}
+          placeholder="Optional description"
+          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+        />
+      </div>
+    </MasterFormLayout>
   );
 }

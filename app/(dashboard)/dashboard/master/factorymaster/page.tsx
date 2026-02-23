@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
+
 import {
   getFactories,
   deleteFactory,
   FactoryMaster,
 } from "@/services/factorymaster.service";
+import DataTable from "@/components/layout/DataTable";
 
 export default function FactoryMasterListPage() {
   const [items, setItems] = useState<FactoryMaster[]>([]);
@@ -27,43 +29,60 @@ export default function FactoryMasterListPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
+    <div className="p-6 space-y-4">
+
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <h1 className="text-xl font-semibold">Factory Master</h1>
+
         <Link href="/dashboard/master/factorymaster/create">
           <Button title="Add Factory" />
         </Link>
       </div>
 
-      <table className="w-full border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">Location Name</th>
-            <th className="border p-2">Contact Person</th>
-            <th className="border p-2">Mobile</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((f) => (
-            <tr key={f.id}>
-              <td className="border p-2">{f.name}</td>
-              <td className="border p-2">{f.incharge_name || "-"}</td>
-              <td className="border p-2">{f.mobile_number || "-"}</td>
-              <td className="border p-2 flex gap-2">
-                <Link href={`/dashboard/master/factorymaster/${f.id}`}>
+      {/* DataTable */}
+      <DataTable
+        data={items}
+        pageSize={5}
+        columns={[
+          {
+            header: "Location Name",
+            accessor: "name",
+            sortable: true,
+          },
+          {
+            header: "Contact Person",
+            accessor: "incharge_name",
+            sortable: true,
+            render: (row) => row.incharge_name || "-",
+          },
+          {
+            header: "Mobile",
+            accessor: "mobile_number",
+            sortable: true,
+            render: (row) => row.mobile_number || "-",
+          },
+          {
+            header: "Actions",
+            accessor: "id",
+            render: (row) => (
+              <div className="flex gap-2">
+                <Link
+                  href={`/dashboard/master/factorymaster/${row.id}`}
+                >
                   <Button title="Edit" variant="secondary" />
                 </Link>
+
                 <Button
                   title="Delete"
                   variant="danger"
-                  onClick={() => handleDelete(f.id)}
+                  onClick={() => handleDelete(row.id)}
                 />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

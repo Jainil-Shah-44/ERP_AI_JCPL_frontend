@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
+
 import {
   getUnits,
   deleteUnit,
   UnitMaster,
 } from "@/services/unitmaster.service";
+import DataTable from "@/components/layout/DataTable";
 
 export default function UnitMasterListPage() {
   const [items, setItems] = useState<UnitMaster[]>([]);
@@ -27,45 +29,61 @@ export default function UnitMasterListPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
+    <div className="p-6 space-y-4">
+
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <h1 className="text-xl font-semibold">Unit Master</h1>
+
         <Link href="/dashboard/master/unitmaster/create">
           <Button title="Add Unit" />
         </Link>
       </div>
 
-      <table className="w-full border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">Unit Code</th>
-            <th className="border p-2">Description</th>
-            <th className="border p-2">Conversion Factor</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((u) => (
-            <tr key={u.id}>
-              <td className="border p-2">{u.unit_code}</td>
-              <td className="border p-2">{u.description || "-"}</td>
-              <td className="border p-2">
-                {u.conversion_factor ?? "-"}
-              </td>
-              <td className="border p-2 flex gap-2">
-                <Link href={`/dashboard/master/unitmaster/${u.id}`}>
+      {/* DataTable */}
+      <DataTable
+        data={items}
+        pageSize={5}
+        columns={[
+          {
+            header: "Unit Code",
+            accessor: "unit_code",
+            sortable: true,
+          },
+          {
+            header: "Description",
+            accessor: "description",
+            sortable: true,
+            render: (row) => row.description || "-",
+          },
+          {
+            header: "Conversion Factor",
+            accessor: "conversion_factor",
+            sortable: true,
+            render: (row) =>
+              row.conversion_factor ?? "-",
+          },
+          {
+            header: "Actions",
+            accessor: "id",
+            render: (row) => (
+              <div className="flex gap-2">
+                <Link
+                  href={`/dashboard/master/unitmaster/${row.id}`}
+                >
                   <Button title="Edit" variant="secondary" />
                 </Link>
+
                 <Button
                   title="Delete"
                   variant="danger"
-                  onClick={() => handleDelete(u.id)}
+                  onClick={() => handleDelete(row.id)}
                 />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

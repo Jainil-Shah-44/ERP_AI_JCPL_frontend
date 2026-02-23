@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
+
 import {
   getCategories,
   deleteCategory,
   CategoryMaster,
 } from "@/services/categorymaster.service";
+import DataTable from "@/components/layout/DataTable";
 
 export default function CategoryMasterListPage() {
   const [items, setItems] = useState<CategoryMaster[]>([]);
@@ -27,41 +29,54 @@ export default function CategoryMasterListPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
+    <div className="p-6 space-y-4">
+
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <h1 className="text-xl font-semibold">Category Master</h1>
+
         <Link href="/dashboard/master/categorymaster/create">
           <Button title="Add Category" />
         </Link>
       </div>
 
-      <table className="w-full border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">Name</th>
-            <th className="border p-2">Description</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((c) => (
-            <tr key={c.id}>
-              <td className="border p-2">{c.name}</td>
-              <td className="border p-2">{c.description || "-"}</td>
-              <td className="border p-2 flex gap-2">
-                <Link href={`/dashboard/master/categorymaster/${c.id}`}>
+      {/* DataTable */}
+      <DataTable
+        data={items}
+        pageSize={5}
+        columns={[
+          {
+            header: "Name",
+            accessor: "name",
+            sortable: true,
+          },
+          {
+            header: "Description",
+            accessor: "description",
+            sortable: true,
+            render: (row) => row.description || "-",
+          },
+          {
+            header: "Actions",
+            accessor: "id",
+            render: (row) => (
+              <div className="flex gap-2">
+                <Link
+                  href={`/dashboard/master/categorymaster/${row.id}`}
+                >
                   <Button title="Edit" variant="secondary" />
                 </Link>
+
                 <Button
                   title="Delete"
                   variant="danger"
-                  onClick={() => handleDelete(c.id)}
+                  onClick={() => handleDelete(row.id)}
                 />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

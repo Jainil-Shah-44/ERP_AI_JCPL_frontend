@@ -1,108 +1,100 @@
 "use client";
 
-import Table from "@/components/ui/Table";
-import type { Column } from "@/components/ui/Table";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import DataTable from "@/components/layout/DataTable";
+import Button from "@/components/ui/Button";
+import { getPurchaseRequisitions } from "@/services/purchaserequisition.service";
 
-export type RfqSupplier = {
-    supplier: string;
-    price: number;
-    leadTime: string;
-    paymentTerms: string;
-    aiScore: number;
-};
+export default function ApprovedPRList() {
+  const [items, setItems] = useState<any[]>([]);
+  const router = useRouter();
 
-const columns: Column<RfqSupplier>[] = [
-    { label: "Supplier", key: "supplier" },
-    {
-        label: "Price",
-        key: "price",
-        render: (row) => `₹${row.price.toLocaleString()}`,
-    },
-    { label: "Lead Time", key: "leadTime" },
-    { label: "Payment Terms", key: "paymentTerms" },
-    {
-        label: "AI Score",
-        key: "aiScore",
-        render: (row) => (
-            <span className="text-yellow-500">
-                {"★".repeat(row.aiScore)}{"☆".repeat(5 - row.aiScore)}
-            </span>
-        ),
-    },
-];
+  const load = async () => {
+    try {
+      const res = await getPurchaseRequisitions(1, 20);
 
-const data: RfqSupplier[] = [
-    {
-        supplier: "Supplier A",
-        price: 12500,
-        leadTime: "5 days",
-        paymentTerms: "Net 30",
-        aiScore: 4,
-    },
-    {
-        supplier: "Supplier B",
-        price: 12800,
-        leadTime: "8 days",
-        paymentTerms: "Net 45",
-        aiScore: 3,
-    },
-];
+      const dataArray = res.data?.data || res.data || [];
 
-export default function RfqManagementPage() {
-    const handleSelect = (row: RfqSupplier) => {
-        console.log("Selected Supplier:", row);
-    };
+      const approvedOnly = dataArray.filter(
+        (item: any) => item.status?.toUpperCase() === "APPROVED"
+      );
 
-    return (
-        <div className="p-6">
-            <h1 className="text-xl font-semibold mb-1">RFQ Management</h1>
-            <p className="text-sm text-gray-500 mb-4">
-                Compare supplier quotes and select the best option
-            </p>
-            {/* ===== Table Box ===== */}
-            <div className="rounded-lg border border-gray-300 bg-white p-4">
-                <h2 className="mb-4 text-lg font-semibold text-gray-800">
-                    RFQ Comparison Table
-                </h2>
-                <Table
-                    columns={columns}
-                    data={data}
-                    onAction={handleSelect}
-                />
+      setItems(approvedOnly);
+    } catch (error) {
+      console.error("Failed to load PRs", error);
+    }
+  };
 
-            </div>
+  useEffect(() => {
+    load();
+  }, []);
 
-            {/* ===== AI Recommendation Box (SAME PAGE) ===== */}
-            <div className="mt-4 rounded-lg border border-gray-300 bg-white p-5">
-                <div className="flex gap-4">
+  return (
+    <div className="p-6 space-y-4">
 
-                    {/* Icon */}
-                    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-green-600 text-white">
-                        💡
-                    </div>
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-semibold">
+          Approved Purchase Requisitions
+        </h1>
+      </div>
 
-                    {/* Text */}
-                    <div>
-                        <h3 className="text-sm font-semibold text-gray-900">
-                            AI Recommendation
-                        </h3>
-
-                        <p className="mt-1 text-sm text-gray-700">
-                            <strong>Supplier A</strong> is recommended based on AI analysis:
-                        </p>
-
-                        <ul className="mt-2 list-disc pl-5 text-sm text-gray-700">
-                            <li>98% on-time delivery</li>
-                            <li>Lowest rejection rate</li>
-                            <li>Best price vs quality balance</li>
-                            <li>Reliable past performance</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+      {/* DataTable */}
+      <DataTable
+        data={items}
+        pageSize={5}
+        columns={[
+          {
+            header: "PR Number",
+            accessor: "pr_number",
+            sortable: true,
+          },
+          {
+            header: "Department",
+            accessor: "department",
+            sortable: true,
+          },
+          {
+            header: "Priority",
+            accessor: "priority",
+            sortable: true,
+          },
+          {
+            header: "Required Date",
+            accessor: "required_by_date",
+            sortable: true,
+            render: (row) =>
+              row.required_by_date
+                ? new Date(row.required_by_date).toLocaleDateString()
+                : "-",
+          },
+          {
+            header: "Status",
+            accessor: "status",
+            render: (row) => (
+              <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
+                {row.status}
+              </span>
+            ),
+          },
+          {
+            header: "Actions",
+            accessor: "id",
+            render: (row) => (
+              <Button
+                title="Create RFQ"
+                variant="primary"
+                onClick={() =>
+                  router.push(
+                    `/dashboard/procurement/rfq-management/create?pr_id=${row.id}`
+                  )
+                }
+              />
+            ),
+          },
+        ]}
+      />
+    </div>
+  );
 }
-
-
-

@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
+
 import {
   getRawMaterials,
   deleteRawMaterial,
   RawMaterialMaster,
 } from "@/services/rawmaterialmaster.service";
+import DataTable from "@/components/layout/DataTable";
 
 export default function RawMaterialMasterListPage() {
   const [items, setItems] = useState<RawMaterialMaster[]>([]);
@@ -27,41 +29,53 @@ export default function RawMaterialMasterListPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
+    <div className="p-6 space-y-4">
+
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <h1 className="text-xl font-semibold">Raw Material Master</h1>
+
         <Link href="/dashboard/master/rawmaterialmaster/create">
           <Button title="Add Material" />
         </Link>
       </div>
 
-      <table className="w-full border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">Code</th>
-            <th className="border p-2">Name</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((m) => (
-            <tr key={m.id}>
-              <td className="border p-2">{m.material_code}</td>
-              <td className="border p-2">{m.material_name}</td>
-              <td className="border p-2 flex gap-2">
-                <Link href={`/dashboard/master/rawmaterialmaster/${m.id}`}>
+      {/* DataTable */}
+      <DataTable
+        data={items}
+        pageSize={5}
+        columns={[
+          {
+            header: "Code",
+            accessor: "material_code",
+            sortable: true,
+          },
+          {
+            header: "Name",
+            accessor: "material_name",
+            sortable: true,
+          },
+          {
+            header: "Actions",
+            accessor: "id",
+            render: (row) => (
+              <div className="flex gap-2">
+                <Link
+                  href={`/dashboard/master/rawmaterialmaster/${row.id}`}
+                >
                   <Button title="Edit" variant="secondary" />
                 </Link>
+
                 <Button
                   title="Delete"
                   variant="danger"
-                  onClick={() => handleDelete(m.id)}
+                  onClick={() => handleDelete(row.id)}
                 />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

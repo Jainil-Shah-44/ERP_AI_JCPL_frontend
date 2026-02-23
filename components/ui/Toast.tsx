@@ -1,17 +1,29 @@
+// components/Toast.tsx
 "use client";
 
-export default function Toast({
-  message,
-  show,
-}: {
-  message: string;
-  show: boolean;
-}) {
-  if (!show) return null;
+import { useEffect } from "react";
+import { toast, ToastContainer, ToastPosition } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-  return (
-    <div className="fixed bottom-5 right-5 bg-green-600 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50">
-      ✅ {message}
-    </div>
-  );
+export type ToastPropsType = {
+  msg: string;
+  type?: "info" | "success" | "warning" | "error" | "default";
+  position?: ToastPosition;
+  autoClose?: number;
+  id?: number;
+};
+
+export default function Toast({
+  msg,
+  type = "default",
+  position = "top-right",
+  autoClose = 3000,
+  id,
+}: ToastPropsType) {
+  useEffect(() => {
+    toast(msg, { type, position, autoClose });
+  }, [id, msg, type, position, autoClose]);
+  
+
+  return <ToastContainer position={position} autoClose={autoClose} hideProgressBar />;
 }

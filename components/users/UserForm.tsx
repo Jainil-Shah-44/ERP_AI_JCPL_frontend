@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Button from "@/components/ui/Button";
+import MasterFormLayout from "@/components/layout/MasterFormLayout";
 
 type Props = {
   initialData?: any;
@@ -34,64 +35,97 @@ export default function UserForm({
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       await onSubmit(form);
-      alert("Saved successfully");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <Label>Username</Label>
-          <Input name="username" value={form.username} onChange={handleChange} />
-        </div>
-
-        <div>
-          <Label>Email</Label>
-          <Input name="email" value={form.email} onChange={handleChange} />
-        </div>
-
-        <div>
-          <Label>Mobile Number</Label>
-          <Input name="mobile_number" value={form.mobile_number} onChange={handleChange} />
-        </div>
-
-        <div>
-          <Label>Role</Label>
-          <Input name="role" value={form.role} onChange={handleChange} />
-        </div>
-
-        <div>
-          <Label>Location</Label>
-          <Input name="location" value={form.location} onChange={handleChange} />
-        </div>
-
-        {showPassword && (
-          <div>
-            <Label>Password</Label>
-            <Input
-              type="password"
-              name="password"
-              value={form.password}
-              onChange={handleChange}
-            />
-          </div>
-        )}
-      </div>
-
-      <div className="mt-6">
+    <MasterFormLayout
+      title="User Master"
+      description="Create and manage system users"
+      actions={
         <Button
-          title={loading ? "Saving..." : "Save"}
+          title={loading ? "Saving..." : "Save User"}
           variant="primary"
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={loading || !form.username?.trim()}
+        />
+      }
+    >
+      {/* Username */}
+      <div>
+        <Label>Username</Label>
+        <Input
+          name="username"
+          value={form.username}
+          onChange={handleChange}
+          placeholder="Enter username"
         />
       </div>
-    </>
+
+      {/* Email */}
+      <div>
+        <Label>Email</Label>
+        <Input
+          type="email"
+          name="email"
+          value={form.email}
+          onChange={handleChange}
+          placeholder="Enter email"
+        />
+      </div>
+
+      {/* Mobile */}
+      <div>
+        <Label>Mobile Number</Label>
+        <Input
+          type="text"
+          name="mobile_number"
+          value={form.mobile_number}
+          onChange={handleChange}
+          placeholder="Enter mobile number"
+        />
+      </div>
+
+      {/* Role */}
+      <div>
+        <Label>Role</Label>
+        <Input
+          name="role"
+          value={form.role}
+          onChange={handleChange}
+          placeholder="Enter role"
+        />
+      </div>
+
+      {/* Location */}
+      <div>
+        <Label>Location</Label>
+        <Input
+          name="location"
+          value={form.location}
+          onChange={handleChange}
+          placeholder="Enter location"
+        />
+      </div>
+
+      {/* Password */}
+      {showPassword && (
+        <div>
+          <Label>Password</Label>
+          <Input
+            type="password"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Enter password"
+          />
+        </div>
+      )}
+    </MasterFormLayout>
   );
 }

@@ -8,6 +8,8 @@ import {
 } from "@/services/department.service";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
+import DataTable from "@/components/layout/DataTable";
+
 
 export default function DepartmentListPage() {
   const [items, setItems] = useState<Department[]>([]);
@@ -27,41 +29,54 @@ export default function DepartmentListPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
+    <div className="p-6 space-y-4">
+
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <h1 className="text-xl font-semibold">Departments</h1>
+
         <Link href="/dashboard/master/departmentmaster/create">
           <Button title="Add Department" />
         </Link>
       </div>
 
-      <table className="w-full border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">Name</th>
-            <th className="border p-2">Description</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((d) => (
-            <tr key={d.id}>
-              <td className="border p-2">{d.name}</td>
-              <td className="border p-2">{d.description || "-"}</td>
-              <td className="border p-2 flex gap-2">
-                <Link href={`/dashboard/master/departmentmaster/${d.id}`}>
+      {/* DataTable */}
+      <DataTable
+        data={items}
+        pageSize={5}
+        columns={[
+          {
+            header: "Name",
+            accessor: "name",
+            sortable: true,
+          },
+          {
+            header: "Description",
+            accessor: "description",
+            sortable: true,
+            render: (row) => row.description || "-",
+          },
+          {
+            header: "Actions",
+            accessor: "id",
+            render: (row) => (
+              <div className="flex gap-2">
+                <Link
+                  href={`/dashboard/master/departmentmaster/${row.id}`}
+                >
                   <Button title="Edit" variant="secondary" />
                 </Link>
+
                 <Button
                   title="Delete"
                   variant="danger"
-                  onClick={() => handleDelete(d.id)}
+                  onClick={() => handleDelete(row.id)}
                 />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }

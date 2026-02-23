@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import MasterFormLayout from "@/components/layout/MasterFormLayout";
 
 import { getCategories } from "@/services/categorymaster.service";
 import { getGroups } from "@/services/groupmaster.service";
@@ -51,7 +52,7 @@ export default function RawMaterialMasterForm({
   }, []);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -67,102 +68,107 @@ export default function RawMaterialMasterForm({
   };
 
   return (
-    <div className="bg-white border rounded-lg p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <div>
-          <Label>Material Code</Label>
-          <Input
-            name="material_code"
-            value={form.material_code}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div>
-          <Label>Material Name</Label>
-          <Input
-            name="material_name"
-            value={form.material_name}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        <div>
-          <Label>Description</Label>
-          <Input
-            name="description"
-            value={form.description}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <Label>Category</Label>
-          <select
-            name="category_id"
-            value={form.category_id}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-            required
-          >
-            <option value="">-- Select Category --</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <Label>Group</Label>
-          <select
-            name="group_id"
-            value={form.group_id}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-            required
-          >
-            <option value="">-- Select Group --</option>
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <Label>Unit</Label>
-          <select
-            name="unit_id"
-            value={form.unit_id}
-            onChange={handleChange}
-            className="w-full border rounded px-3 py-2"
-            required
-          >
-            <option value="">-- Select Unit --</option>
-            {units.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.unit_code}
-              </option>
-            ))}
-          </select>
-        </div>
-
-      </div>
-
-      <div className="flex gap-4 mt-8 border-t pt-6">
+    <MasterFormLayout
+      title="Raw Material Master"
+      description="Create and manage raw material details"
+      actions={
         <Button
-          title={loading ? "Saving..." : "Save"}
+          title={loading ? "Saving..." : "Save Material"}
           variant="primary"
           onClick={handleSubmit}
-          disabled={loading}
+          disabled={
+            loading ||
+            !form.material_code.trim() ||
+            !form.material_name.trim() ||
+            !form.category_id ||
+            !form.group_id ||
+            !form.unit_id
+          }
+        />
+      }
+    >
+      <div>
+        <Label>Material Code</Label>
+        <Input
+          name="material_code"
+          value={form.material_code}
+          onChange={handleChange}
+          placeholder="Enter material code"
         />
       </div>
-    </div>
+
+      <div>
+        <Label>Material Name</Label>
+        <Input
+          name="material_name"
+          value={form.material_name}
+          onChange={handleChange}
+          placeholder="Enter material name"
+        />
+      </div>
+
+      <div className="md:col-span-2">
+        <Label>Description</Label>
+        <textarea
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          rows={3}
+          placeholder="Optional description"
+          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+        />
+      </div>
+
+      <div>
+        <Label>Category</Label>
+        <select
+          name="category_id"
+          value={form.category_id}
+          onChange={handleChange}
+          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">-- Select Category --</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <Label>Group</Label>
+        <select
+          name="group_id"
+          value={form.group_id}
+          onChange={handleChange}
+          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">-- Select Group --</option>
+          {groups.map((g) => (
+            <option key={g.id} value={g.id}>
+              {g.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div>
+        <Label>Unit</Label>
+        <select
+          name="unit_id"
+          value={form.unit_id}
+          onChange={handleChange}
+          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">-- Select Unit --</option>
+          {units.map((u) => (
+            <option key={u.id} value={u.id}>
+              {u.unit_code}
+            </option>
+          ))}
+        </select>
+      </div>
+    </MasterFormLayout>
   );
 }

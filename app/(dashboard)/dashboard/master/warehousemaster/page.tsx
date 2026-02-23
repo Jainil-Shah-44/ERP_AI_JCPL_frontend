@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
+
 import {
   getWarehouses,
   deleteWarehouse,
   WarehouseMaster,
 } from "@/services/warehousemaster.service";
+import DataTable from "@/components/layout/DataTable";
 
 export default function WarehouseMasterListPage() {
   const [items, setItems] = useState<WarehouseMaster[]>([]);
@@ -27,45 +29,66 @@ export default function WarehouseMasterListPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between mb-4">
+    <div className="p-6 space-y-4">
+
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <h1 className="text-xl font-semibold">Warehouse Master</h1>
+
         <Link href="/dashboard/master/warehousemaster/create">
           <Button title="Add Warehouse" />
         </Link>
       </div>
 
-      <table className="w-full border">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">Name</th>
-            <th className="border p-2">Location</th>
-            <th className="border p-2">State</th>
-            <th className="border p-2">Incharge</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((w) => (
-            <tr key={w.id}>
-              <td className="border p-2">{w.name}</td>
-              <td className="border p-2">{w.location || "-"}</td>
-              <td className="border p-2">{w.state || "-"}</td>
-              <td className="border p-2">{w.incharge || "-"}</td>
-              <td className="border p-2 flex gap-2">
-                <Link href={`/dashboard/master/warehousemaster/${w.id}`}>
+      {/* DataTable */}
+      <DataTable
+        data={items}
+        pageSize={5}
+        columns={[
+          {
+            header: "Name",
+            accessor: "name",
+            sortable: true,
+          },
+          {
+            header: "Location",
+            accessor: "location",
+            sortable: true,
+            render: (row) => row.location || "-",
+          },
+          {
+            header: "State",
+            accessor: "state",
+            sortable: true,
+            render: (row) => row.state || "-",
+          },
+          {
+            header: "Incharge",
+            accessor: "incharge",
+            sortable: true,
+            render: (row) => row.incharge || "-",
+          },
+          {
+            header: "Actions",
+            accessor: "id",
+            render: (row) => (
+              <div className="flex gap-2">
+                <Link
+                  href={`/dashboard/master/warehousemaster/${row.id}`}
+                >
                   <Button title="Edit" variant="secondary" />
                 </Link>
+
                 <Button
                   title="Delete"
                   variant="danger"
-                  onClick={() => handleDelete(w.id)}
+                  onClick={() => handleDelete(row.id)}
                 />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
