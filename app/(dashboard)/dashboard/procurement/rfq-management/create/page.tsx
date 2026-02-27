@@ -50,33 +50,38 @@ export default function CreateRFQ() {
 
   // ✅ Submit
   const handleSubmit = async () => {
-    if (!prId) {
-      alert("PR ID not found");
-      return;
-    }
+  if (!prId) {
+    alert("PR ID not found");
+    return;
+  }
 
-    if (selectedItems.length === 0) {
-      alert("Please select at least one item");
-      return;
-    }
+  if (selectedItems.length === 0) {
+    alert("Please select at least one item");
+    return;
+  }
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      await createRFQ({
-        pr_id: prId,
-        pr_item_ids: selectedItems,
-        remarks,
-      });
+    const res = await createRFQ({
+      pr_id: prId,
+      pr_item_ids: selectedItems,
+      remarks,
+    });
 
-      router.push("/dashboard/procurement/rfq-management/rfq_details");
-    } catch (err) {
-      console.error(err);
-      alert("Error creating RFQ");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // 🔥 Redirect to RFQ list
+    router.push("/dashboard/procurement/rfq-management");
+
+    // OR (Better ERP flow)
+    // router.push(`/dashboard/procurement/rfq-management/${res.id}`);
+
+  } catch (err) {
+    console.error(err);
+    alert("Error creating RFQ");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <MasterFormLayout

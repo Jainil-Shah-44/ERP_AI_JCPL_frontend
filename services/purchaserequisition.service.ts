@@ -15,9 +15,16 @@ export type CreatePurchaseRequisitionPayload = {
   warehouse_id: string;
   department: string;
   priority: string;
-  required_by_date: string;
   remarks: string;
-  items: PurchaseRequisitionItem[];
+  items: {
+    material_id: string;
+    material_code: string;
+    material_name: string;
+    unit_id: string;
+    requested_qty: number;
+    estimated_rate: number;
+    required_by_date: string; // now only here
+  }[];
 };
 
 export const createPurchaseRequisition = (

@@ -44,17 +44,19 @@ export const getRfqById = async (id: string) => {
 };
 
 // 🔹 Submit Quotation
-export const submitQuotation = async (
-  rfqId: string,
-  payload: any
-) => {
-  return await apiFetch(
-    `/rfq/${rfqId}/submit-quotation`,
-    {
-      method: "POST",
-      body: JSON.stringify(payload),
-    }
-  );
+export const submitQuotation = async (payload: {
+  rfq_vendor_id: string;
+  items: {
+    rfq_item_id: string;
+    quoted_rate: number;
+    lead_time_days: number;
+    remarks: string;
+  }[];
+}) => {
+  return apiFetch(`/rfq/vendor/submit-quotation`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 };
 
 // for rfq_vendor Id
@@ -63,6 +65,32 @@ export const getRfqVendors = async (rfqId: string) => {
     `/rfq/${rfqId}/vendors`,
     {
       method: "GET",
+    }
+  );
+};
+
+//rfq comparison
+export const getRfqComparison = async (rfqId: string) => {
+  return await apiFetch(`/rfq/${rfqId}/comparison`, {
+    method: "GET",
+  });
+};
+
+//create PO from RFQ
+export const createPOFromRFQ = (payload: {
+  rfq_id: string;
+  selections: {
+    rfq_item_id: string;
+    rfq_vendor_id: string;
+    final_rate: number;
+    lead_time_days: number;
+  }[];
+}) => {
+  return apiFetch(
+    `/rfq/${payload.rfq_id}/create-po`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
     }
   );
 };

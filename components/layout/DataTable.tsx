@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 
-type Column<T> = {
+export type Column<T> = {
   header: string;
   accessor: keyof T;
   sortable?: boolean;
