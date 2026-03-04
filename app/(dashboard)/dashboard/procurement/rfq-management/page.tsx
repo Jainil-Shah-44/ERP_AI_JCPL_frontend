@@ -4,97 +4,187 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import DataTable from "@/components/layout/DataTable";
 import Button from "@/components/ui/Button";
-import { getPurchaseRequisitions } from "@/services/purchaserequisition.service";
+import { getRFQs } from "@/services/rfq.service";
+import { Column } from "@/components/layout/DataTable";
 
-export default function ApprovedPRList() {
-  const [items, setItems] = useState<any[]>([]);
+type RFQ = {
+  id: string;
+  rfq_number: string;
+  rfq_date: string;
+  status: string;
+  source_pr_id: string;
+  created_at: string;
+};
+
+const STATUS_TABS = ["ALL", "DRAFT", "SENT", "CLOSED", "CANCELLED"];
+
+export default function RFQListPage() {
+  const [rfqs, setRfqs] = useState<RFQ[]>([]);
+  const [filtered, setFiltered] = useState<RFQ[]>([]);
+  const [activeTab, setActiveTab] = useState("ALL");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const load = async () => {
+  useEffect(() => {
+    loadRFQs();
+  }, []);
+
+  useEffect(() => {
+    filterByStatus(activeTab);
+  }, [activeTab, rfqs]);
+
+  const loadRFQs = async () => {
     try {
-      const res = await getPurchaseRequisitions(1, 20);
-
+      setLoading(true);
+      const res = await getRFQs(1, 20);
       const dataArray = res.data?.data || res.data || [];
-
-      const approvedOnly = dataArray.filter(
-        (item: any) => item.status?.toUpperCase() === "APPROVED"
-      );
-
-      setItems(approvedOnly);
+      setRfqs(dataArray);
     } catch (error) {
-      console.error("Failed to load PRs", error);
+      console.error("Failed to load RFQs", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    load();
-  }, []);
+  const filterByStatus = (status: string) => {
+    if (status === "ALL") {
+      setFiltered(rfqs);
+    } else {
+      setFiltered(rfqs.filter((r) => r.status === status));
+    }
+  };
 
-  return (
-    <div className="p-6 space-y-4">
+  const getStatusBadge = (status: string) => {
+    const base = "px-2 py-1 text-xs rounded font-medium";
 
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <h1 className="text-xl font-semibold">
-          Approved Purchase Requisitions
-        </h1>
-      </div>
+    if (status === "DRAFT")
+      return <span className={`${base} bg-gray-200 text-gray-700`}>DRAFT</span>;
 
-      {/* DataTable */}
-      <DataTable
-        data={items}
-        pageSize={5}
-        columns={[
-          {
-            header: "PR Number",
-            accessor: "pr_number",
-            sortable: true,
-          },
-          {
-            header: "Department",
-            accessor: "department",
-            sortable: true,
-          },
-          {
-            header: "Priority",
-            accessor: "priority",
-            sortable: true,
-          },
-          {
-            header: "Required Date",
-            accessor: "required_by_date",
-            sortable: true,
-            render: (row) =>
-              row.required_by_date
-                ? new Date(row.required_by_date).toLocaleDateString()
-                : "-",
-          },
-          {
-            header: "Status",
-            accessor: "status",
-            render: (row) => (
-              <span className="px-2 py-1 text-xs bg-green-100 text-green-700 rounded">
-                {row.status}
-              </span>
-            ),
-          },
-          {
-            header: "Actions",
-            accessor: "id",
-            render: (row) => (
+    if (status === "SENT")
+      return <span className={`${base} bg-yellow-100 text-yellow-700`}>SENT</span>;
+
+    if (status === "CLOSED")
+      return <span className={`${base} bg-green-100 text-green-700`}>CLOSED</span>;
+
+    if (status === "CANCELLED")
+      return <span className={`${base} bg-red-100 text-red-700`}>CANCELLED</span>;
+
+    return <span className={base}>{status}</span>;
+  };
+
+  const columns: Column<RFQ>[] = [
+    {
+      header: "RFQ Number",
+      accessor: "rfq_number",
+      sortable: true,
+    },
+    {
+      header: "RFQ Date",
+      accessor: "rfq_date",
+      render: (row: RFQ) =>
+        row.rfq_date
+          ? new Date(row.rfq_date).toLocaleDateString()
+          : "-",
+    },
+    {
+      header: "Source PR",
+      accessor: "source_pr_id",
+    },
+    {
+      header: "Status",
+      accessor: "status",
+      render: (row: RFQ) => getStatusBadge(row.status),
+    },
+    {
+      header: "Created",
+      accessor: "created_at",
+      render: (row: RFQ) =>
+        row.created_at
+          ? new Date(row.created_at).toLocaleDateString()
+          : "-",
+    },
+    {
+      header: "Actions",
+      accessor: "id",
+      render: (row: RFQ) => (
+        <div className="flex gap-2">
+          <Button
+            title="View"
+            variant="secondary"
+            onClick={() =>
+              router.push(
+                `/dashboard/procurement/rfq-management/${row.id}`
+              )
+            }
+          />
+
+          {row.status === "SENT" && (
+            <>
               <Button
-                title="Create RFQ"
+                title="Enter Quotation"
                 variant="primary"
                 onClick={() =>
                   router.push(
-                    `/dashboard/procurement/rfq-management/create?pr_id=${row.id}`
+                    `/dashboard/procurement/rfq-management/${row.id}/enter-quotation`
                   )
                 }
               />
-            ),
-          },
-        ]}
-      />
+
+              <Button
+                title="Comparison"
+                variant="secondary"
+                onClick={() =>
+                  router.push(
+                    `/dashboard/procurement/rfq-management/${row.id}/comparison`
+                  )
+                }
+              />
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-semibold">RFQ Management</h1>
+
+        <Button
+          title="Create RFQ"
+          onClick={() =>
+            router.push(
+              "/dashboard/procurement/rfq-management/create"
+            )
+          }
+        />
+      </div>
+
+      {/* Status Tabs */}
+      <div className="flex gap-3 border-b pb-2">
+        {STATUS_TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-3 py-1 text-sm rounded ${
+              activeTab === tab
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* Table */}
+      <DataTable data={filtered} columns={columns} pageSize={5} />
+
+      {loading && (
+        <p className="text-sm text-gray-500">Loading RFQs...</p>
+      )}
     </div>
   );
 }

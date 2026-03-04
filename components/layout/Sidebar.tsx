@@ -160,7 +160,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 {!isCollapsed && <span>RFQ Management</span>}
               </Link>
 
-              <Link href="/dashboard/PurchaseOrders" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/dashboard/PurchaseOrders")
+              <Link href="/dashboard/procurement/purchase-order" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/dashboard/PurchaseOrders")
                 ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
                 <PackageCheck size={20} className="min-w-[20px]" />
                 {!isCollapsed && <span>Purchase Orders</span>}

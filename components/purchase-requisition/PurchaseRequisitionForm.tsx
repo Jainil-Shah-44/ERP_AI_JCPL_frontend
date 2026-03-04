@@ -1,160 +1,122 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Select from "@/components/ui/Select";
 import Toast from "@/components/ui/Toast";
 
-import { Department, getDepartments } from "@/services/department.service";
-import { FactoryMaster, getFactories } from "@/services/factorymaster.service";
 import {
   createPurchaseRequisition,
-  getPurchaseRequisitionById,
-  submitPurchaseRequisition,
   updatePurchaseRequisition,
-  uploadPurchaseRequisitionAttachment,
+  submitPurchaseRequisition,
+  getPurchaseRequisitionById,
 } from "@/services/purchaserequisition.service";
-import {
-  getRawMaterials,
-  RawMaterialMaster,
-} from "@/services/rawmaterialmaster.service";
-import {
-  getWarehouses,
-  WarehouseMaster,
-} from "@/services/warehousemaster.service";
+
+import { getRawMaterials } from "@/services/rawmaterialmaster.service";
+import { getFactories } from "@/services/factorymaster.service";
+import { getWarehouses } from "@/services/warehousemaster.service";
+import { getDepartments } from "@/services/department.service";
 
 interface Props {
-  editId?: string; // future use for edit
+  editId?: string;
 }
 
+type LineItem = {
+  material_id: string;
+  material_code: string;
+  material_name: string;
+  unit_id: string;
+  requested_qty: number | "";
+  estimated_rate: number | "";
+  required_by_date: string;
+};
+
 export default function PurchaseRequisitionForm({ editId }: Props) {
+  const router = useRouter();
   const isEdit = !!editId;
 
-  // ---------------- MASTER DATA ----------------
-
-  const [rawMaterial, setRawMaterial] = useState<RawMaterialMaster[]>([]);
-  const [factory, setFactory] = useState<FactoryMaster[]>([]);
-  const [department, setDepartment] = useState<Department[]>([]);
-  const [warehouse, setWarehouse] = useState<WarehouseMaster[]>([]);
-
-  // ---------------- FORM STATE ----------------
-
-  const [form, setForm] = useState({
-    material: null as RawMaterialMaster | null,
-    department: "",
-    factory: "",
-    warehouse: "",
-    priority: "NORMAL",
-    description: "",
-    quantity: "",
-    minQty: "500 units",
-    requiredDate: "",
-  });
+  const [rawMaterials, setRawMaterials] = useState<any[]>([]);
+  const [factories, setFactories] = useState<any[]>([]);
+  const [warehouses, setWarehouses] = useState<any[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
 
   const [prId, setPrId] = useState<string | null>(null);
-  const [showUpload, setShowUpload] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileResponse, setFileResponse] = useState<any>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [header, setHeader] = useState({
+    factory_id: "",
+    warehouse_id: "",
+    department: "",
+    priority: "NORMAL",
+    remarks: "",
+  });
 
-  const [toast, setToast] = useState<{
-    msg: string;
-    type: "success" | "error";
-    id?: number;
-  } | null>(null);
+  const [items, setItems] = useState<LineItem[]>([]);
 
-  // ---------------- LOAD MASTER DATA ----------------
+  const [toast, setToast] = useState<any>(null);
 
-  useEffect(() => {
-    const load = async () => {
-      setDepartment(await getDepartments());
-      setFactory(await getFactories());
-      setRawMaterial(await getRawMaterials());
-      setWarehouse(await getWarehouses());
-    };
-    load();
-  }, []);
-
-  // ---------------- OPTIONS ----------------
-
-  const departmentOptions = department.map((d) => ({
-    label: d.name,
-    value: d.name,
-  }));
-
-  const factoryOptions = factory.map((f) => ({
-    label: f.name,
-    value: f.id,
-  }));
-
-  const warehouseOptions = warehouse.map((w) => ({
-    label: w.name,
-    value: w.id,
-  }));
-
-  const rawMaterialOptions = rawMaterial.map((r) => ({
-    label: r.material_name,
-    value: r.id,
-  }));
-
-  const priorityOptions = [
-    { label: "NORMAL", value: "NORMAL" },
-    { label: "MEDIUM", value: "MEDIUM" },
-    { label: "EMERGENCY", value: "EMERGENCY" },
-  ];
-
-  // ---------------- HANDLERS ----------------
-
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleMaterialChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const selected = rawMaterial.find(
-      (item) => item.id === e.target.value
-    );
-
-    setForm((prev) => ({
-      ...prev,
-      material: selected || null,
-    }));
-  };
+  /* ================= LOAD MASTER DATA ================= */
 
 useEffect(() => {
+  const loadMasterData = async () => {
+    try {
+      const [
+        rawMat,
+        fac,
+        ware,
+        dept
+      ] = await Promise.all([
+        getRawMaterials(),
+        getFactories(),
+        getWarehouses(),
+        getDepartments(),
+      ]);
+
+      setRawMaterials(rawMat || []);
+      setFactories(fac || []);
+      setWarehouses(ware || []);
+      setDepartments(dept || []);
+    } catch (error) {
+      console.error("Failed to load master data", error);
+    }
+  };
+
+  loadMasterData();
+}, []);
+
+
+
+  useEffect(() => {
   if (!editId) return;
 
   const fetchData = async () => {
     try {
       const data = await getPurchaseRequisitionById(editId);
-      console.log("getPurchaseRequisitionById data", data)
-      const item = data.items?.[0];
 
-      // 🔵 find full raw material object from master list
-      const selectedMaterial = rawMaterial.find(
-        (rm) => rm.id === item?.material_id
-      ) || null;
-
-      setForm({
-        material: selectedMaterial,
+      // 🔹 Header
+      setHeader({
+        factory_id: data.factory_id || "",
+        warehouse_id: data.warehouse_id || "",
         department: data.department || "",
-        factory: data.factory_id || "",
-        warehouse: data.warehouse_id || "",
         priority: data.priority || "NORMAL",
-        description: data.remarks || "",
-        quantity: item?.requested_qty?.toString() || "",
-        minQty: "500 units",
-        requiredDate: data.required_by_date || "",
+        remarks: data.remarks || "",
       });
 
+      // 🔹 Items (map ALL items properly)
+      const mappedItems = (data.items || []).map((item: any) => ({
+        material_id: item.material_id,
+        material_code: item.material_code,
+        material_name: item.material_name,
+        unit_id: item.unit_id,
+        requested_qty: item.requested_qty,
+        estimated_rate: item.estimated_rate,
+        required_by_date: item.required_by_date,
+      }));
+
+      setItems(mappedItems);
       setPrId(data.id);
-      
 
     } catch (error) {
       console.error("Failed to fetch PR:", error);
@@ -162,239 +124,300 @@ useEffect(() => {
   };
 
   fetchData();
-}, [editId, rawMaterial]);
+}, [editId,rawMaterials.length]);
 
+  /* ================= ADD LINE ITEM ================= */
 
-  // ---------------- SAVE DRAFT ----------------
+  const addLineItem = () => {
+    setItems([
+      ...items,
+      {
+        material_id: "",
+        material_code: "",
+        material_name: "",
+        unit_id: "",
+        requested_qty: "",
+        estimated_rate: "",
+        required_by_date: "",
+      },
+    ]);
+  };
 
- const handleSave = async () => {
+  const removeLineItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
 
-    if (!form.material) return;
+  const updateItem = (
+  index: number,
+  field: keyof LineItem,
+  value: any
+) => {
+  setItems((prev) => {
+    const updated = [...prev];
+    updated[index] = {
+      ...updated[index],
+      [field]: value,
+    };
+    return updated;
+  });
+};
 
-    if (isEdit) {
-      // 🔵 UPDATE LOGIC
-      const payload = {
-        department: form.department,
-        priority: form.priority,
-        required_by_date: form.requiredDate,
-        remarks: form.description,
-        items: [
-          {
-            material_id: form.material.id,
-            material_code: form.material.material_code,
-            material_name: form.material.material_name,
-            requested_qty: Number(form.quantity),
-            unit_id: form.material.unit_id,
-            estimated_rate: 0,
-          },
-        ],
+  /* ================= SAVE ================= */
+
+  const handleSave = async (submit = false) => {
+  if (items.length === 0) {
+    alert("Add at least one item");
+    return;
+  }
+
+  try {
+    let id = prId;
+
+    const formattedItems = items.map((item) => ({
+      material_id: item.material_id,
+      material_code: item.material_code,
+      material_name: item.material_name,
+      unit_id: item.unit_id,
+      requested_qty: Number(item.requested_qty || 0),
+      estimated_rate: Number(item.estimated_rate || 0),
+      required_by_date: item.required_by_date,
+    }));
+
+    if (isEdit && editId) {
+      const updatePayload = {
+        department: header.department,
+        priority: header.priority,
+        remarks: header.remarks,
+        items: formattedItems,
       };
 
-      await updatePurchaseRequisition(editId as string, payload);
-
-      setToast({ msg: "Updated Successfully", type: "success" });
-
+      await updatePurchaseRequisition(editId, updatePayload);
+      id = editId;
     } else {
-      // 🟢 CREATE LOGIC
-      const payload = {
-        factory_id: form.factory,
-        warehouse_id: form.warehouse,
-        department: form.department,
-        priority: form.priority,
-        required_by_date: form.requiredDate,
-        remarks: form.description,
-        items: [
-          {
-            material_id: form.material.id,
-            material_code: form.material.material_code,
-            material_name: form.material.material_name,
-            requested_qty: Number(form.quantity),
-            unit_id: form.material.unit_id,
-            estimated_rate: 0,
-            required_by_date: form.requiredDate,
-          },
-        ],
+      const createPayload = {
+        ...header,
+        items: formattedItems,
       };
 
-      const res = await createPurchaseRequisition(payload);
-      setPrId(res.id);
-      setShowUpload(true);
-
-      setToast({ msg: "Draft Saved", type: "success" });
+      const res = await createPurchaseRequisition(createPayload);
+      id = res.id;
+      setPrId(id);
     }
- 
- }
-  // ---------------- FILE UPLOAD ----------------
 
-  const handleUpload = async () => {
-    if (!selectedFile || !prId) return;
-
-    try {
-      const response = await uploadPurchaseRequisitionAttachment(
-        prId,
-        selectedFile
-      );
-
-      setFileResponse(response);
-      setSelectedFile(null);
-      setUploadSuccess(true);
-
-      if (fileInputRef.current) fileInputRef.current.value = "";
-
-      setToast({
-        msg: "File Uploaded Successfully",
-        type: "success",
-        id: Date.now(),
-      });
-    } catch {
-      setToast({
-        msg: "Upload Failed",
-        type: "error",
-        id: Date.now(),
-      });
+    if (submit && id) {
+      await submitPurchaseRequisition(id);
     }
-  };
 
-  const handleFinalSubmit = async () => {
-    if (!prId) return;
+    router.push("/dashboard/procurement/purchase-requisition");
 
-    try {
-      await submitPurchaseRequisition(prId);
+  } catch (error: any) {
+    console.error("Save Error:", error);
+    setToast({
+      msg: error?.response?.data?.detail || "Operation failed",
+      type: "error",
+    });
+  }
+};
 
-      setToast({
-        msg: "PR Submitted Successfully",
-        type: "success",
-        id: Date.now(),
-      });
-    } catch {
-      setToast({
-        msg: "Submit Failed",
-        type: "error",
-        id: Date.now(),
-      });
-    }
-  };
-
-  // ---------------- UI ----------------
+  /* ================= UI ================= */
 
   return (
-    <div className="p-6 bg-gray-50 min-h-[calc(100vh-64px)]">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Purchase Requisition</h1>
-        <p className="text-sm text-gray-500">
-          Create a new purchase requisition
-        </p>
+    <div className="p-6 space-y-6">
+
+      <h1 className="text-xl font-semibold">
+        {isEdit ? "Edit PR" : "Create PR"}
+      </h1>
+
+      {/* Header Section */}
+      <div className="grid grid-cols-2 gap-4 bg-white p-4 border rounded">
+        <div>
+          <Label>Factory</Label>
+          <Select
+            name="factory_id"
+            value={header.factory_id}
+            options={factories.map((f) => ({
+              label: f.name,
+              value: f.id,
+            }))}
+            onChange={(e: any) =>
+              setHeader({
+                ...header,
+                factory_id: e.target.value,
+              })
+            }
+          />
+        </div>
+
+        <div>
+          <Label>Warehouse</Label>
+          <Select
+            name="warehouse_id"
+            value={header.warehouse_id}
+            options={warehouses.map((w) => ({
+              label: w.name,
+              value: w.id,
+            }))}
+            onChange={(e: any) =>
+              setHeader({
+                ...header,
+                warehouse_id: e.target.value,
+              })
+            }
+          />
+        </div>
+
+        <div>
+          <Label>Department</Label>
+          <Select
+            name="department"
+            value={header.department}
+            options={departments.map((d) => ({
+              label: d.name,
+              value: d.name, // or d.id if backend expects ID
+            }))}
+            onChange={(e: any) =>
+              setHeader({
+                ...header,
+                department: e.target.value,
+              })
+            }
+          />
+        </div>
+
+        <div>
+          <Label>Priority</Label>
+          <Select
+            name="priority"
+            value={header.priority}
+            options={[
+              { label: "NORMAL", value: "NORMAL" },
+              { label: "MEDIUM", value: "MEDIUM" },
+              { label: "EMERGENCY", value: "EMERGENCY" },
+            ]}
+            onChange={(e: any) =>
+              setHeader({
+                ...header,
+                priority: e.target.value,
+              })
+            }
+          />
+        </div>
       </div>
 
-      <div className="bg-white border rounded-lg p-6">
-        {!showUpload && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Line Items */}
+      <div className="bg-white p-4 border rounded space-y-4">
+        <div className="flex justify-between">
+          <h2 className="font-semibold">Items</h2>
+          <Button title="Add Item" onClick={addLineItem} />
+        </div>
 
-            <div>
-              <Label>Department</Label>
-              <Select name="department" value={form.department}
-                options={departmentOptions}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <Label>Factory</Label>
-              <Select name="factory" value={form.factory}
-                options={factoryOptions}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <Label>Warehouse</Label>
-              <Select name="warehouse" value={form.warehouse}
-                options={warehouseOptions}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <Label>Priority</Label>
-              <Select name="priority" value={form.priority}
-                options={priorityOptions}
-                onChange={handleChange}
-              />
-            </div>
-
+        {items.map((item, index) => (
+          <div
+            key={index}
+            className="grid grid-cols-6 gap-3 items-end"
+          >
             <div>
               <Label>Material</Label>
               <Select
-                name="material"
-                value={form.material?.id || ""}
-                options={rawMaterialOptions}
-                onChange={handleMaterialChange}
+                name={`material_${index}`}
+                value={item.material_id}
+                options={rawMaterials.map((r) => ({
+                  label: r.material_name,
+                  value: r.id,
+                }))}
+                onChange={(e: any) => {
+                  const selected = rawMaterials.find(
+                    (r) => r.id === e.target.value
+                  );
+                  if (!selected) return;
+
+                  updateItem(index, "material_id", selected.id);
+                  updateItem(
+                    index,
+                    "material_code",
+                    selected.material_code
+                  );
+                  updateItem(
+                    index,
+                    "material_name",
+                    selected.material_name
+                  );
+                  updateItem(
+                    index,
+                    "unit_id",
+                    selected.unit_id
+                  );
+                }}
               />
             </div>
 
             <div>
-              <Label>Description</Label>
-              <Input name="description"
-                value={form.description}
-                onChange={handleChange}
+              <Label>Qty</Label>
+              <Input
+                type="number"
+                value={item.requested_qty}
+                onChange={(e) =>
+                  updateItem(
+                    index,
+                    "requested_qty",
+                    e.target.value === "" ? "" : Number(e.target.value)
+                  )
+                }
               />
             </div>
 
             <div>
-              <Label>Requested Quantity</Label>
-              <Input type="number"
-                name="quantity"
-                value={form.quantity}
-                onChange={handleChange}
+              <Label>Estimated Rate</Label>
+              <Input
+                type="number"
+                value={item.estimated_rate}
+                onChange={(e) =>
+                  updateItem(
+                    index,
+                    "estimated_rate",
+                    e.target.value === "" ? "" : Number(e.target.value)
+                  )
+                }
               />
             </div>
 
             <div>
               <Label>Required Date</Label>
-              <Input type="date"
-                name="requiredDate"
-                value={form.requiredDate}
-                onChange={handleChange}
+              <Input
+                type="date"
+                value={item.required_by_date}
+                onChange={(e) =>
+                  updateItem(
+                    index,
+                    "required_by_date",
+                    e.target.value
+                  )
+                }
               />
             </div>
 
+            <div>
+              <Button
+                title="Remove"
+                variant="danger"
+                onClick={() => removeLineItem(index)}
+              />
+            </div>
           </div>
-        )}
+        ))}
+      </div>
 
-        {showUpload && (
-          <div className="mt-6 space-y-4">
-            <Label>Upload Supporting File</Label>
-            <Input type="file" ref={fileInputRef}
-              onChange={(e) =>
-                setSelectedFile(e.target.files?.[0] || null)
-              }
-            />
-
-            {selectedFile && (
-              <Button title="Upload" onClick={handleUpload} />
-            )}
-
-            {fileResponse && (
-              <div className="text-green-600">
-                Uploaded: {fileResponse.file_name}
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="flex gap-4 mt-8 border-t pt-6">
-          <Button
-            title={isEdit ? "Update PR" : "Save Draft"}
-            disabled={!form.factory || !form.material || showUpload}
-            onClick={handleSave}
-          />
-
-          <Button
-            title="Submit PR"
-            disabled={!uploadSuccess}
-            onClick={handleFinalSubmit}
-          />
-        </div>
+      {/* Actions */}
+      <div className="flex gap-4">
+        <Button
+          title="Save Draft"
+          onClick={() => handleSave(false)}
+        />
+        <Button
+          title="Submit PR"
+          variant="primary"
+          onClick={() => handleSave(true)}
+        />
       </div>
 
       {toast && (
@@ -403,10 +426,8 @@ useEffect(() => {
           type={toast.type}
           position="top-center"
           autoClose={2000}
-          id={toast.id}
         />
       )}
     </div>
   );
 }
-

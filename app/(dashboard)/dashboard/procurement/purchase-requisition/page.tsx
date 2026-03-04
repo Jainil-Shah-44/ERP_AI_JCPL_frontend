@@ -135,11 +135,11 @@ export default function PurchaseRequisitionListPage() {
                             </span>
                         ),
                     },
-                    {
-                        header: "Required Date",
-                        accessor: "required_by_date",
-                        sortable: true,
-                    },
+                    // {
+                    //     header: "Required Date",
+                    //     accessor: "required_by_date",
+                    //     sortable: true,
+                    // },
                     {
                         header: "View Docs",
                         accessor: "id",
@@ -210,7 +210,9 @@ export default function PurchaseRequisitionListPage() {
                                             title="Create RFQ"
                                             variant="primary"
                                             onClick={() =>
-                                                router.push(`/rfq/create?pr_id=${row.id}`)
+                                                router.push(
+                                            `/dashboard/procurement/rfq-management/create?pr_id=${row.id}`
+                                            )
                                             }
                                         />
                                     </div>
