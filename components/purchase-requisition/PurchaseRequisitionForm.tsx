@@ -451,6 +451,44 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
         ))}
       </div>
 
+      {/* ATTACHMENTS */}
+      <div className="bg-white p-4 border rounded space-y-3">
+        <h2 className="font-semibold">Attachments</h2>
+
+        <Input
+          type="file"
+          multiple
+          accept=".pdf,.jpg,.jpeg,.png"
+          onChange={handleFileChange}
+        />
+
+        {/* Newly selected files */}
+        {files.length > 0 && (
+          <div className="text-sm space-y-1">
+            {files.map((f, i) => (
+              <div key={i}>{f.name}</div>
+            ))}
+          </div>
+        )}
+
+        {/* Existing files in edit mode */}
+        {existingFiles.length > 0 && (
+          <div className="text-sm space-y-1">
+            {existingFiles.map((f: any) => (
+              <div key={f.id}>
+                <a
+                  href={f.file_url}
+                  target="_blank"
+                  className="text-blue-600 underline"
+                >
+                  {f.file_name}
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* ACTIONS */}
       <div className="flex gap-4">
         <Button
