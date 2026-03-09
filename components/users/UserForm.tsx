@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Button from "@/components/ui/Button";
 import MasterFormLayout from "@/components/layout/MasterFormLayout";
+import Toast from "@/components/ui/Toast";
 
 type Props = {
   initialData?: any;
@@ -17,6 +18,7 @@ export default function UserForm({
   onSubmit,
   showPassword = true,
 }: Props) {
+
   const [form, setForm] = useState(
     initialData || {
       username: "",
@@ -29,103 +31,173 @@ export default function UserForm({
   );
 
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<any>(null);
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  /* ================= VALIDATION ================= */
+
+  const validate = (): string | null => {
+
+    if (!form.username.trim())
+      return "Username is required";
+
+    if (!form.email.trim())
+      return "Email is required";
+
+    const emailRegex =
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    if (!emailRegex.test(form.email))
+      return "Enter valid email address";
+
+    if (!form.mobile_number)
+      return "Mobile number is required";
+
+    if (!/^[0-9]{10}$/.test(form.mobile_number))
+      return "Mobile number must be 10 digits";
+
+    if (!form.role.trim())
+      return "Role is required";
+
+    if (!form.location.trim())
+      return "Location is required";
+
+    if (showPassword) {
+
+      if (!form.password)
+        return "Password is required";
+
+      const passwordRegex =
+        /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+
+      if (!passwordRegex.test(form.password))
+        return "Password must be 8+ characters with letters and numbers";
+    }
+
+    return null;
+  };
+
   const handleSubmit = async () => {
+
+    const validationError = validate();
+
+    if (validationError) {
+      setToast({ msg: validationError, type: "error" });
+      return;
+    }
+
     try {
       setLoading(true);
       await onSubmit(form);
     } finally {
       setLoading(false);
     }
+
   };
 
   return (
-    <MasterFormLayout
-      title="User Master"
-      description="Create and manage system users"
-      actions={
-        <Button
-          title={loading ? "Saving..." : "Save User"}
-          variant="primary"
-          onClick={handleSubmit}
-          disabled={loading || !form.username?.trim()}
-        />
-      }
-    >
-      {/* Username */}
-      <div>
-        <Label>Username</Label>
-        <Input
-          name="username"
-          value={form.username}
-          onChange={handleChange}
-          placeholder="Enter username"
-        />
-      </div>
+    <>
+      <MasterFormLayout
+        title="User Master"
+        description="Create and manage system users"
+        actions={
+          <Button
+            title={loading ? "Saving..." : "Save User"}
+            variant="primary"
+            onClick={handleSubmit}
+            disabled={loading}
+          />
+        }
+      >
 
-      {/* Email */}
-      <div>
-        <Label>Email</Label>
-        <Input
-          type="email"
-          name="email"
-          value={form.email}
-          onChange={handleChange}
-          placeholder="Enter email"
-        />
-      </div>
-
-      {/* Mobile */}
-      <div>
-        <Label>Mobile Number</Label>
-        <Input
-          type="text"
-          name="mobile_number"
-          value={form.mobile_number}
-          onChange={handleChange}
-          placeholder="Enter mobile number"
-        />
-      </div>
-
-      {/* Role */}
-      <div>
-        <Label>Role</Label>
-        <Input
-          name="role"
-          value={form.role}
-          onChange={handleChange}
-          placeholder="Enter role"
-        />
-      </div>
-
-      {/* Location */}
-      <div>
-        <Label>Location</Label>
-        <Input
-          name="location"
-          value={form.location}
-          onChange={handleChange}
-          placeholder="Enter location"
-        />
-      </div>
-
-      {/* Password */}
-      {showPassword && (
+        {/* Username */}
         <div>
-          <Label>Password</Label>
+          <Label>Username <span className="text-red-500">*</span></Label>
           <Input
-            type="password"
-            name="password"
-            value={form.password}
+            name="username"
+            value={form.username}
             onChange={handleChange}
-            placeholder="Enter password"
+            placeholder="Enter username"
           />
         </div>
+
+        {/* Email */}
+        <div>
+          <Label>Email <span className="text-red-500">*</span></Label>
+          <Input
+            type="email"
+            name="email"
+            value={form.email}
+            onChange={handleChange}
+            placeholder="Enter email"
+          />
+        </div>
+
+        {/* Mobile */}
+        <div>
+          <Label>Mobile Number <span className="text-red-500">*</span></Label>
+          <Input
+            type="tel"
+            name="mobile_number"
+            value={form.mobile_number}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "");
+              setForm({ ...form, mobile_number: value });
+            }}
+            placeholder="Enter mobile number"
+            maxLength={10}
+          />
+        </div>
+
+        {/* Role */}
+        <div>
+          <Label>Role <span className="text-red-500">*</span></Label>
+          <Input
+            name="role"
+            value={form.role}
+            onChange={handleChange}
+            placeholder="Enter role"
+          />
+        </div>
+
+        {/* Location */}
+        <div>
+          <Label>Location <span className="text-red-500">*</span></Label>
+          <Input
+            name="location"
+            value={form.location}
+            onChange={handleChange}
+            placeholder="Enter location"
+          />
+        </div>
+
+        {/* Password */}
+        {showPassword && (
+          <div>
+            <Label>Password <span className="text-red-500">*</span></Label>
+            <Input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="Enter password"
+            />
+          </div>
+        )}
+
+      </MasterFormLayout>
+
+      {toast && (
+        <Toast
+          msg={toast.msg}
+          type={toast.type}
+          position="top-center"
+          autoClose={2000}
+        />
       )}
-    </MasterFormLayout>
+    </>
   );
 }

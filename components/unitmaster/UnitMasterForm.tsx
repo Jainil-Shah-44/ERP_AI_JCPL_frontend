@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import MasterFormLayout from "@/components/layout/MasterFormLayout";
 import { getUnits, UnitMaster } from "@/services/unitmaster.service";
+import Toast from "@/components/ui/Toast";
 
 type UnitFormData = {
   unit_code: string;
@@ -22,6 +23,7 @@ type Props = {
 export default function UnitMasterForm({ initialData, onSubmit }: Props) {
   const [units, setUnits] = useState<UnitMaster[]>([]);
   const [loading, setLoading] = useState(false);
+  const [toast, setToast] = useState<any>(null);
 
   const [form, setForm] = useState<UnitFormData>({
     unit_code: initialData?.unit_code || "",
@@ -50,7 +52,31 @@ export default function UnitMasterForm({ initialData, onSubmit }: Props) {
     }));
   };
 
+  /* ================= VALIDATION ================= */
+
+  const validate = (): string | null => {
+
+    if (!form.unit_code.trim())
+      return "Unit code is required";
+
+    if (!form.base_unit_id)
+      return "Base unit is required";
+
+    if (!form.conversion_factor)
+      return "Conversion factor is required";
+
+    return null;
+  };
+
   const handleSubmit = async () => {
+
+    const validationError = validate();
+
+    if (validationError) {
+      setToast({ msg: validationError, type: "error" });
+      return;
+    }
+
     try {
       setLoading(true);
       await onSubmit(form);
@@ -60,74 +86,85 @@ export default function UnitMasterForm({ initialData, onSubmit }: Props) {
   };
 
   return (
-    <MasterFormLayout
-      title="Unit Master"
-      description="Create and manage measurement units"
-      actions={
-        <Button
-          title={loading ? "Saving..." : "Save Unit"}
-          variant="primary"
-          onClick={handleSubmit}
-          disabled={loading || !form.unit_code.trim()}
-        />
-      }
-    >
-      <div>
-        <Label>Unit Code</Label>
-        <Input
-          name="unit_code"
-          value={form.unit_code}
-          onChange={handleChange}
-          placeholder="e.g. KG, LTR, PCS"
-        />
-      </div>
+    <>
+      <MasterFormLayout
+        title="Unit Master"
+        description="Create and manage measurement units"
+        actions={
+          <Button
+            title={loading ? "Saving..." : "Save Unit"}
+            variant="primary"
+            onClick={handleSubmit}
+            disabled={loading}
+          />
+        }
+      >
+        <div>
+          <Label>Unit Code <span className="text-red-500">*</span></Label>
+          <Input
+            name="unit_code"
+            value={form.unit_code}
+            onChange={handleChange}
+            placeholder="e.g. KG, LTR, PCS"
+          />
+        </div>
 
-      <div>
-        <Label>Description</Label>
-        <textarea
-          name="description"
-          value={form.description}
-          onChange={handleChange}
-          rows={3}
-          placeholder="Optional description"
-          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-        />
-      </div>
+        <div>
+          <Label>Description</Label>
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            rows={3}
+            placeholder="Optional description"
+            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          />
+        </div>
 
-      <div>
-        <Label>Base Unit</Label>
-        <select
-          name="base_unit_id"
-          value={form.base_unit_id}
-          onChange={handleChange}
-          className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="">-- Select Base Unit (Optional) --</option>
-          {units.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.unit_code}
-            </option>
-          ))}
-        </select>
-      </div>
+        <div>
+          <Label>Base Unit <span className="text-red-500">*</span></Label>
+          <select
+            name="base_unit_id"
+            value={form.base_unit_id}
+            onChange={handleChange}
+            className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">-- Select Base Unit --</option>
+            {units.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.unit_code}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      <div>
-        <Label>Conversion Factor</Label>
-        <Input
-          type="number"
-          step="any"
-          name="conversion_factor"
-          value={form.conversion_factor ?? ""}
-          onChange={handleChange}
-          placeholder="e.g. 1000"
-          disabled={!form.base_unit_id}
+        <div>
+          <Label>Conversion Factor <span className="text-red-500">*</span></Label>
+          <Input
+            type="number"
+            step="any"
+            name="conversion_factor"
+            value={form.conversion_factor ?? ""}
+            onChange={handleChange}
+            placeholder="e.g. 1000"
+            disabled={!form.base_unit_id}
+          />
+          {!form.base_unit_id && (
+            <p className="text-xs text-gray-400 mt-1">
+              Select base unit to enable conversion
+            </p>
+          )}
+        </div>
+      </MasterFormLayout>
+
+      {toast && (
+        <Toast
+          msg={toast.msg}
+          type={toast.type}
+          position="top-center"
+          autoClose={2000}
         />
-        {!form.base_unit_id && (
-          <p className="text-xs text-gray-400 mt-1">
-            Select base unit to enable conversion
-          </p>
-        )}
-      </div>
-    </MasterFormLayout>
+      )}
+    </>
   );
 }
