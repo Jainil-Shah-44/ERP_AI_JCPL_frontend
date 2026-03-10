@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/app/context/AuthContext";
 import Toast from "@/components/ui/Toast";
 
-
 export default function Login() {
   const router = useRouter();
   const { setAccessToken } = useAuth();
@@ -18,49 +17,48 @@ export default function Login() {
   const [password, setPassword] = useState("admin123");
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-
+  const [toast, setToast] = useState<any>(null);
 
   const handleLogin = async () => {
-  setLoading(true);
+    setLoading(true);
 
-  try {
-    const res = await fetch("http://localhost:8000/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // 🔑 required for refresh_token cookie
-      body: JSON.stringify({
-        company_code: companyCode,
-        username,
-        password,
-      }),
-    });
+    try {
+      const res = await fetch("http://localhost:8000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // 🔑 required for refresh_token cookie
+        body: JSON.stringify({
+          company_code: companyCode,
+          username,
+          password,
+        }),
+      });
 
-    if (!res.ok) {
-      throw new Error("Invalid credentials");
+      if (!res.ok) {
+        throw new Error("Invalid credentials");
+      }
+
+      const data = await res.json();
+
+      // ✅ Store access token ONLY in memory
+      setAccessToken(data.access_token);
+      setToast(true);
+      // 🔥 THIS WAS MISSING
+      localStorage.setItem("access_token", data.access_token);
+
+      // ✅ Show success toast on login page
+      setShowSuccess(true);
+
+      // ⏳ Redirect after short delay
+      setTimeout(() => {
+        router.replace("/dashboard");
+      }, 2000);
+    } catch (err) {
+      alert("Login failed. Check credentials.");
+    } finally {
+      setLoading(false);
     }
-
-    const data = await res.json();
-
-    // ✅ Store access token ONLY in memory
-    setAccessToken(data.access_token);
-
-    // 🔥 THIS WAS MISSING
-  localStorage.setItem("access_token", data.access_token);
-
-    // ✅ Show success toast on login page
-    setShowSuccess(true);
-
-    // ⏳ Redirect after short delay
-    setTimeout(() => {
-      router.replace("/dashboard");
-    }, 2000);
-
-  } catch (err) {
-    alert("Login failed. Check credentials.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -103,10 +101,14 @@ export default function Login() {
           />
         </div>
       </div>
-      <Toast
-      show={showSuccess}
-      message="Logged in successfully"
-    />
+      {toast && (
+        <Toast
+          msg="Logged in successfully"
+          type="success"
+          position="top-center"
+          autoClose={2000}
+        />
+      )}
     </div>
   );
 }

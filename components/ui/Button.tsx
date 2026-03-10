@@ -36,7 +36,7 @@ const Button = ({
     green: "bg-[#198754] text-white hover:bg-green-700 focus:ring-green-500",
     primary: "bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-indigo-500",
     secondary: "bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-400",
-    danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+    danger: "bg-red-300 text-black hover:bg-red-700 focus:ring-red-500",
     outline: "border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 focus:ring-gray-400",
   };
 
