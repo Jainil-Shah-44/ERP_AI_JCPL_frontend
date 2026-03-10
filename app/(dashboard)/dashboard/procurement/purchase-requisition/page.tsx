@@ -248,6 +248,7 @@ export default function PurchaseRequisitionListPage() {
               />
             </div>
 
+<<<<<<< HEAD
             <div className="flex justify-end gap-3">
               <Button
                 title="Cancel"
@@ -266,6 +267,61 @@ export default function PurchaseRequisitionListPage() {
           </div>
         </div>
       )}
+=======
+            {/* DataTable */}
+            <DataTable
+                data={items}
+                pageSize={5}
+                columns={[
+                    {
+                        header: "PR Number",
+                        accessor: "pr_number",
+                        sortable: true,
+                    },
+                    {
+                        header: "Department",
+                        accessor: "department",
+                        sortable: true,
+                    },
+                    {
+                        header: "Priority",
+                        accessor: "priority",
+                        sortable: true,
+                    },
+                    {
+                        header: "Status",
+                        accessor: "status",
+                        sortable: true,
+                        render: (row) => (
+                            <span
+                                className={`px-2 py-1 rounded text-xs font-medium ${row.status === "DRAFT"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : row.status === "SUBMITTED"
+                                        ? "bg-blue-100 text-blue-700"
+                                        : "bg-green-100 text-green-700"
+                                    }`}
+                            >
+                                {row.status}
+                            </span>
+                        ),
+                    },
+                    // {
+                    //     header: "Required Date",
+                    //     accessor: "required_by_date",
+                    //     sortable: true,
+                    // },
+                    {
+                        header: "View Docs",
+                        accessor: "id",
+                        render: (row) => (
+                            <Button
+                                title="View"
+                                variant="secondary"
+                                onClick={() => handleViewDocs(row.id)}
+                            />
+                        ),
+                    },
+>>>>>>> devswapnil
 
       {/* DOCS MODAL */}
       {showDocsModal && (
@@ -289,7 +345,109 @@ export default function PurchaseRequisitionListPage() {
                   ? doc.file_path
                   : `/${doc.file_path}`;
 
+<<<<<<< HEAD
                 const fullUrl = `${baseURL}${path}`;
+=======
+
+                            if (row.status === "APPROVED") {
+                                return (
+                                    <div className="flex gap-2">
+                                        <Button
+                                            title="Approved"
+                                            variant="secondary"
+                                            disabled
+                                        />
+
+                                        <Button
+                                            title="Create RFQ"
+                                            variant="primary"
+                                            onClick={() =>
+                                                router.push(
+                                            `/dashboard/procurement/rfq-management/create?pr_id=${row.id}`
+                                            )
+                                            }
+                                        />
+                                    </div>
+                                );
+                            }
+
+                            if (row.status === "REJECTED") {
+                                return (
+                                    <Button
+                                        title="Rejected"
+                                        variant="danger"
+                                        disabled
+                                    />
+                                );
+                            }
+
+                            return null;
+                        },
+                    }
+
+
+                ]}
+            />
+            {showModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg w-[400px] p-6 shadow-lg">
+
+                        <h2 className="text-lg font-semibold mb-4">
+                            {actionType === "APPROVE"
+                                ? "Approve Purchase Requisition"
+                                : "Reject Purchase Requisition"}
+                        </h2>
+
+                        <div className="mb-3">
+                            <label className="text-sm font-medium">PR Number</label>
+                            <input
+                                type="text"
+                                value={selectedPR?.pr_number}
+                                readOnly
+                                className="w-full border rounded px-3 py-2 bg-gray-100"
+                            />
+                        </div>
+
+                        <div className="mb-4">
+                            <label className="text-sm font-medium">Remarks</label>
+                            <textarea
+                                value={remarks}
+                                onChange={(e) => setRemarks(e.target.value)}
+                                className="w-full border rounded px-3 py-2"
+                                placeholder="Enter remarks"
+                            />
+                        </div>
+
+                        <div className="flex justify-end gap-3">
+                            <Button
+                                title="Cancel"
+                                variant="secondary"
+                                onClick={() => {
+                                    setShowModal(false);
+                                    setRemarks("");
+                                }}
+                            />
+
+                            <Button
+                                title={
+                                    actionType === "APPROVE"
+                                        ? "Confirm Approve"
+                                        : "Confirm Reject"
+                                }
+                                variant={actionType === "APPROVE" ? "secondary" : "danger"}
+                                onClick={handleConfirmAction}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {selectedDocs.map((doc: any, index: number) => {
+
+                const fullUrl = doc.file_url?.startsWith("http")
+                    ? doc.file_url
+                    : `http://localhost:8000${doc.file_url}`;
+>>>>>>> devswapnil
 
                 return (
                   <div key={doc.id} className="mb-3">

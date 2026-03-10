@@ -63,6 +63,7 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
+      <img src='/logo.jpeg'/>
         <div className="bg-white rounded-xl shadow-md p-6">
           <h2 className="text-lg font-semibold mb-4">Sign In</h2>
 
