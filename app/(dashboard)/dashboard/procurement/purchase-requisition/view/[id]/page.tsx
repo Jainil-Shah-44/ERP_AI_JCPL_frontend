@@ -100,8 +100,8 @@ export default function ViewPRPage() {
         ) : (
           pr.attachments.map((file: any) => {
             const baseURL =
-              process.env.NEXT_PUBLIC_API_BASE_URL ||
-              "http://103.196.187.61:8000/api";
+            process.env.NEXT_PUBLIC_API_URL
+              // "http://103.196.187.61:8000/api";
 
             const path = file.file_path?.startsWith("/")
               ? file.file_path

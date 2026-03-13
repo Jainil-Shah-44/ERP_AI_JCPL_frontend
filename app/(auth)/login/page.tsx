@@ -18,12 +18,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [toast, setToast] = useState<any>(null);
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const handleLogin = async () => {
     setLoading(true);
 
     try {
-      const res = await fetch("http://103.196.187.61:8000/api/auth/login", {
+      const res = await fetch(`${baseUrl}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // 🔑 required for refresh_token cookie
@@ -45,7 +46,7 @@ export default function Login() {
       setToast(true);
       // 🔥 THIS WAS MISSING
       localStorage.setItem("access_token", data.access_token);
-
+      localStorage.setItem("permissions", JSON.stringify(data.permissions));
       // ✅ Show success toast on login page
       setShowSuccess(true);
 

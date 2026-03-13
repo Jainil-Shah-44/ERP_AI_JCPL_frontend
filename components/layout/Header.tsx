@@ -11,6 +11,7 @@ export default function Header({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -29,7 +30,7 @@ export default function Header({
 
   const handleLogout = async () => {
     try {
-      await fetch("http://103.196.187.61:8000/api/auth/logout", {
+      await fetch(`${baseUrl}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
