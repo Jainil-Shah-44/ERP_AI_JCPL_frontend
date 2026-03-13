@@ -18,6 +18,7 @@ export default function Login() {
   const [password, setPassword] = useState("admin123");
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [toast, setToast] = useState<any>(null);
 
 
   const handleLogin = async () => {
@@ -45,10 +46,11 @@ export default function Login() {
     setAccessToken(data.access_token);
 
     // 🔥 THIS WAS MISSING
-  localStorage.setItem("access_token", data.access_token);
+    localStorage.setItem("access_token", data.access_token);
 
     // ✅ Show success toast on login page
     setShowSuccess(true);
+    setToast(true);
 
     // ⏳ Redirect after short delay
     setTimeout(() => {
@@ -104,10 +106,20 @@ export default function Login() {
           />
         </div>
       </div>
-      <Toast
+
+  {toast && (
+        <Toast
+          msg={'Logged in successfully'}
+          type = "success"
+          position="top-center"
+          autoClose={2000}
+        />
+    )}
+
+      {/* <Toast
       show={showSuccess}
       message="Logged in successfully"
-    />
+    /> */}
     </div>
   );
 }

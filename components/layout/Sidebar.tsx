@@ -24,8 +24,8 @@ import { PiUniteSquareFill } from "react-icons/pi";
 import { CiShop } from "react-icons/ci";
 
 interface SidebarProps {
-  isCollapsed: boolean;
-  setIsCollapsed: (value: boolean) => void;
+  isCollapsed: boolean ;
+  setIsCollapsed: (value: boolean) => false;
 }
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
@@ -217,7 +217,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           </div>
 
           {/* Bottom links */}
-          <div className="mt-auto border-t border-gray-200 pt-4 px-2 space-y-1">
+          {/* <div className="mt-auto border-t border-gray-200 pt-4 px-2 space-y-1">
             <Link href="/reports" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/reports")
               ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`} >
               <BarChart3 size={20} className="min-w-[20px]" />
@@ -229,7 +229,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               <Settings size={20} className="min-w-[20px]" />
               {!isCollapsed && <span>Settings</span>}
             </Link>
-          </div>
+          </div> */}
         </nav>
       </div>
     </aside>
