@@ -1,5 +1,5 @@
 export async function refreshAccessToken() {
-  const res = await fetch("http://localhost:8000/auth/refresh", {
+  const res = await fetch("http://103.196.187.61:8000/api/auth/refresh", {
     method: "POST",
     credentials: "include",
   });
