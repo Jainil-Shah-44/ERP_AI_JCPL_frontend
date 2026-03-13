@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import Button from "@/components/ui/Button";
 import MasterFormLayout from "@/components/layout/MasterFormLayout";
 import Toast from "@/components/ui/Toast";
+import { Eye, EyeOff } from "lucide-react";
+import { IoMdEye, IoMdEyeOff } from "react-icons/io";
 
 type Props = {
   initialData?: any;
@@ -32,6 +34,8 @@ export default function UserForm({
 
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<any>(null);
+  const [showPasswordField, setShowPasswordField] = useState(false);
+  const [showConfirmPasswordField, setShowConfirmPasswordField] = useState(false);
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -75,6 +79,12 @@ export default function UserForm({
 
       if (!passwordRegex.test(form.password))
         return "Password must be 8+ characters with letters and numbers";
+
+      if (!form.confirm_password)
+        return "Confirm password is required";
+
+      if (form.password !== form.confirm_password)
+        return "Password and confirm password do not match";
     }
 
     return null;
@@ -176,15 +186,47 @@ export default function UserForm({
 
         {/* Password */}
         {showPassword && (
-          <div>
+          <div className="relative">
             <Label>Password <span className="text-red-500">*</span></Label>
+
             <Input
-              type="password"
+              type={showPasswordField ? "text" : "password"}
               name="password"
               value={form.password}
               onChange={handleChange}
               placeholder="Enter password"
             />
+
+            <span
+              className="absolute right-3 top-9 cursor-pointer"
+              onClick={() => setShowPasswordField(!showPasswordField)}
+            >
+              {showPasswordField ? <IoMdEyeOff /> : <IoMdEye />}
+            </span>
+          </div>
+
+
+
+        )}
+
+        {showPassword && (
+          <div className="relative">
+            <Label>Confirm Password <span className="text-red-500">*</span></Label>
+
+            <Input
+              type={showConfirmPasswordField ? "text" : "password"}
+              name="confirm_password"
+              value={form.confirm_password}
+              onChange={handleChange}
+              placeholder="Confirm password"
+            />
+
+            <span
+              className="absolute right-3 top-9 cursor-pointer"
+              onClick={() => setShowConfirmPasswordField(!showConfirmPasswordField)}
+            >
+              {showConfirmPasswordField ? <IoMdEyeOff /> : <IoMdEye />}
+            </span>
           </div>
         )}
 

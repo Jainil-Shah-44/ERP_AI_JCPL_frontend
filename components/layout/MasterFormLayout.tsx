@@ -1,5 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import Button from "../ui/Button";
+
 type Props = {
   title: string;
   description?: string;
@@ -13,19 +16,33 @@ export default function MasterFormLayout({
   children,
   actions,
 }: Props) {
+
+  const router = useRouter();
+
   return (
     <div className="p-4 bg-gray-50 min-h-[calc(100vh-64px)]">
 
-      {/* Single Heading */}
-      <div className="mb-4">
-        <h1 className="text-xl font-semibold text-gray-800">
-          {title}
-        </h1>
-        {description && (
-          <p className="text-sm text-gray-500 mt-1">
-            {description}
-          </p>
-        )}
+      {/* Heading Row */}
+      <div className="mb-4 flex items-start justify-between">
+
+        <div>
+          <h1 className="text-xl font-semibold text-gray-800">
+            {title}
+          </h1>
+
+          {description && (
+            <p className="text-sm text-gray-500 mt-1">
+              {description}
+            </p>
+          )}
+        </div>
+
+        {/* Back Button */}
+         <Button
+            title='← Back'
+            variant="primary"
+            onClick={() => router.back()}
+          />
       </div>
 
       {/* Card */}

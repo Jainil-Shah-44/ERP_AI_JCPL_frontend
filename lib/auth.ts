@@ -1,5 +1,6 @@
 export async function refreshAccessToken() {
-  const res = await fetch("http://localhost:8000/auth/refresh", {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+  const res = await fetch(`${baseUrl}/auth/refresh`, {
     method: "POST",
     credentials: "include",
   });

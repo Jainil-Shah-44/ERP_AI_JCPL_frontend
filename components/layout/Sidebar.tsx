@@ -1,8 +1,10 @@
 // components/Sidebar.tsx
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
 import {
   LayoutDashboard,
   FileText,
@@ -14,7 +16,9 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
 } from "lucide-react";
+
 import { BiSolidCategory } from "react-icons/bi";
 import { FcDepartment } from "react-icons/fc";
 import { MdOutlineFactory } from "react-icons/md";
@@ -24,14 +28,20 @@ import { PiUniteSquareFill } from "react-icons/pi";
 import { CiShop } from "react-icons/ci";
 
 interface SidebarProps {
-  isCollapsed: boolean ;
-  setIsCollapsed: (value: boolean) => false;
+  isCollapsed: boolean;
+  setIsCollapsed: (value: boolean) => void;
 }
 
 export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
+
   const pathname = usePathname();
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
 
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
+
+  const toggleMenu = (menu: string) => {
+    setOpenMenu(openMenu === menu ? null : menu);
+  };
 
   const isActive = (path: string) =>
     pathname === path || pathname.startsWith(`${path}/`);
@@ -46,11 +56,13 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       `}
     >
       <div className="flex flex-col h-full">
-        {/* Header - always visible toggle button */}
+
+        {/* Header */}
         <div className="p-4 border-b border-gray-200 flex items-center justify-between shrink-0">
+
           {!isCollapsed && (
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
                 JC
               </div>
               <div>
@@ -62,174 +74,302 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
           <button
             onClick={toggleCollapse}
-            className="p-1.5 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
-            title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="p-1.5 rounded-full hover:bg-gray-100"
           >
             {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
           </button>
+
         </div>
 
-        {/* Scrollable content */}
-        <nav className="flex-1 overflow-y-auto px-2 py-5 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent hover:scrollbar-thumb-gray-400">
+        <nav className="flex-1 overflow-y-auto px-2 py-5">
+
           {/* Dashboard */}
+
           <Link
             href="/dashboard"
-            className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"
-              } py-2.5 rounded-lg transition-colors mb-4 ${isActive("/dashboard")
-                ? "bg-blue-50 text-blue-700"
-                : "text-gray-700 hover:bg-gray-100"
-              }`}
+            className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"}
+            py-2.5 rounded-lg mb-4
+            ${isActive("/dashboard")
+              ? "bg-blue-50 text-blue-700"
+              : "text-gray-700 hover:bg-gray-100"
+            }`}
           >
-            <LayoutDashboard size={20} className="min-w-[20px]" />
-            {!isCollapsed && <span className="text-sm">Dashboard</span>}
+            <LayoutDashboard size={20} />
+            {!isCollapsed && <span>Dashboard</span>}
           </Link>
+
+          {/* ================= MASTER ================= */}
+
           <div className="mb-4">
-            {!isCollapsed && (
-              <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                MASTER
+
+            <button
+              onClick={() => toggleMenu("master")}
+              className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-gray-500 uppercase"
+            >
+              <span>MASTER</span>
+              {!isCollapsed &&
+                (openMenu === "master"
+                  ? <ChevronDown size={16} />
+                  : <ChevronRight size={16} />)}
+            </button>
+
+            {openMenu === "master" && (
+
+              <div className="space-y-1 mt-2">
+
+                <Link href="/dashboard/master/usermaster"
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
+                  ${isActive("/dashboard/master/usermaster")
+                    ? "bg-blue-50 text-blue-700"
+                    : "hover:bg-gray-100"}`}>
+
+                  <FaRegUserCircle size={20} />
+                  {!isCollapsed && <span>User Master</span>}
+
+                </Link>
+
+                <Link href="/dashboard/master/categorymaster"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <BiSolidCategory size={20} />
+                  {!isCollapsed && <span>Category Master</span>}
+
+                </Link>
+
+                <Link href="/dashboard/master/departmentmaster"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <FcDepartment size={20} />
+                  {!isCollapsed && <span>Department Master</span>}
+
+                </Link>
+
+                <Link href="/dashboard/master/factorymaster"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <MdOutlineFactory size={20} />
+                  {!isCollapsed && <span>Factory Master</span>}
+
+                </Link>
+
+                <Link href="/dashboard/master/group"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <FaLayerGroup size={20} />
+                  {!isCollapsed && <span>Group Master</span>}
+
+                </Link>
+
+                <Link href="/dashboard/master/rawmaterialmaster"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <SiMaterialdesignicons size={20} />
+                  {!isCollapsed && <span>Rawmaterial Master</span>}
+
+                </Link>
+
+                <Link href="/dashboard/master/unitmaster"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <PiUniteSquareFill size={20} />
+                  {!isCollapsed && <span>Unit Master</span>}
+
+                </Link>
+
+                <Link href="/dashboard/master/vendormaster"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <CiShop size={20} />
+                  {!isCollapsed && <span>Vendor Master</span>}
+
+                </Link>
+
+                <Link href="/dashboard/master/warehousemaster"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <FaWarehouse size={20} />
+                  {!isCollapsed && <span>Warehouse Master</span>}
+
+                </Link>
+
               </div>
+
             )}
-            <div className="space-y-1">
-               <Link href="/dashboard/master/usermaster" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors
-               ${isActive("dashboard/master/usermaster") ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <FaRegUserCircle  size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>User Master</span>}
-              </Link>
 
-              <Link href="/dashboard/master/categorymaster" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors
-               ${isActive("dashboard/master/categorymastern") ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <BiSolidCategory size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>Category Master</span>}
-              </Link>
-
-              <Link href="/dashboard/master/departmentmaster" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors 
-                  ${isActive("/dashboard/master/departmentmaster") ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`} >
-                <FcDepartment size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>Department Master</span>}
-              </Link>
-
-              <Link href="/dashboard/master/factorymaster" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/dashboard/master/factorymaster")
-                ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <MdOutlineFactory size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>Factory Master</span>}
-              </Link>
-              <Link href="/dashboard/master/group" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/dashboard/master/group")
-                ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <FaLayerGroup size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>Group Master</span>}
-              </Link>
-              <Link href="/dashboard/master/rawmaterialmaster" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/dashboard/master/rawmaterialmaster")
-                ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <SiMaterialdesignicons size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>Rawmaterial Master</span>}
-              </Link>
-              <Link href="/dashboard/master/unitmaster" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/dashboard/master/unitmaster")
-                ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <PiUniteSquareFill size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>Unit Master</span>}
-              </Link>
-              <Link href="/dashboard/master/vendormaster" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/dashboard/master/vendormaster")
-                ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <CiShop size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>Vendor Master</span>}
-              </Link>
-              <Link href="/dashboard/master/warehousemaster" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/dashboard/master/warehousemaster")
-                ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <FaWarehouse size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>Warehouse Master</span>}
-              </Link>
-            </div>
-          </div>
-          {/* PROCUREMENT */}
-          <div className="mb-4">
-            {!isCollapsed && (
-              <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                PROCUREMENT
-              </div>
-            )}
-            <div className="space-y-1">
-              <Link href="/dashboard/procurement/purchase-requisition" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors
-               ${isActive("/dashboard/procurement/purchase-requisition") ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <FileText size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>Purchase Requisition</span>}
-              </Link>
-
-              <Link href="/dashboard/procurement/rfq-management" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors 
-                  ${isActive("/dashboard/procurement/rfq-management") ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`} >
-                <ShoppingCart size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>RFQ Management</span>}
-              </Link>
-
-              <Link href="/dashboard/procurement/purchase-order" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/dashboard/PurchaseOrders")
-                ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <PackageCheck size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>Purchase Orders</span>}
-              </Link>
-            </div>
-          </div>
-
-          {/* WAREHOUSE */}
-          <div className="mb-4">
-            {!isCollapsed && (
-              <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                WAREHOUSE
-              </div>
-            )}
-            <div className="space-y-1">
-              <Link href="/dashboard/grn" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/warehouse/grn")
-                ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <PackageCheck size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>GRN</span>}
-              </Link>
-            </div>
-          </div>
-
-          {/* QUALITY */}
-          <div className="mb-4">
-            {!isCollapsed && (
-              <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                QUALITY
-              </div>
-            )}
-            <div className="space-y-1">
-              <Link href="/dashboard/QCampling" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/dashboard/QCampling")
-                ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-                <Beaker size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>QC Sampling</span>}
-              </Link>
-            </div>
           </div>
 
-          {/* FINANCE */}
+          {/* ================= PROCUREMENT ================= */}
+
           <div className="mb-4">
-            {!isCollapsed && (
-              <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                FINANCE
+
+            <button
+              onClick={() => toggleMenu("procurement")}
+              className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-gray-500 uppercase"
+            >
+              <span>PROCUREMENT</span>
+              {!isCollapsed &&
+                (openMenu === "procurement"
+                  ? <ChevronDown size={16} />
+                  : <ChevronRight size={16} />)}
+            </button>
+
+            {openMenu === "procurement" && (
+
+              <div className="space-y-1 mt-2">
+
+                <Link href="/dashboard/procurement/purchase-requisition"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <FileText size={20} />
+                  {!isCollapsed && <span>Purchase Requisition</span>}
+
+                </Link>
+
+                <Link href="/dashboard/procurement/rfq-management"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <ShoppingCart size={20} />
+                  {!isCollapsed && <span>RFQ Management</span>}
+
+                </Link>
+
+                <Link href="/dashboard/procurement/purchase-order"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <PackageCheck size={20} />
+                  {!isCollapsed && <span>Purchase Orders</span>}
+
+                </Link>
+
               </div>
+
             )}
-            <div className="space-y-1">
-              <Link href="/dashboard/InvoiceMatchingView" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/dashboard/InvoiceMatchingView")
-                ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`} >
-                <DollarSign size={20} className="min-w-[20px]" />
-                {!isCollapsed && <span>Invoices & Matching</span>}
-              </Link>
-            </div>
+
           </div>
 
-          {/* Bottom links */}
-          {/* <div className="mt-auto border-t border-gray-200 pt-4 px-2 space-y-1">
-            <Link href="/reports" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/reports")
-              ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`} >
-              <BarChart3 size={20} className="min-w-[20px]" />
+          {/* ================= WAREHOUSE ================= */}
+
+          <div className="mb-4">
+
+            <button
+              onClick={() => toggleMenu("warehouse")}
+              className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-gray-500 uppercase"
+            >
+              <span>WAREHOUSE</span>
+              {!isCollapsed &&
+                (openMenu === "warehouse"
+                  ? <ChevronDown size={16} />
+                  : <ChevronRight size={16} />)}
+            </button>
+
+            {openMenu === "warehouse" && (
+
+              <div className="space-y-1 mt-2">
+
+                <Link href="/dashboard/grn"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <PackageCheck size={20} />
+                  {!isCollapsed && <span>GRN</span>}
+
+                </Link>
+
+              </div>
+
+            )}
+
+          </div>
+
+          {/* ================= QUALITY ================= */}
+
+          <div className="mb-4">
+
+            <button
+              onClick={() => toggleMenu("quality")}
+              className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-gray-500 uppercase"
+            >
+              <span>QUALITY</span>
+              {!isCollapsed &&
+                (openMenu === "quality"
+                  ? <ChevronDown size={16} />
+                  : <ChevronRight size={16} />)}
+            </button>
+
+            {openMenu === "quality" && (
+
+              <div className="space-y-1 mt-2">
+
+                <Link href="/dashboard/QCampling"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <Beaker size={20} />
+                  {!isCollapsed && <span>QC Sampling</span>}
+
+                </Link>
+
+              </div>
+
+            )}
+
+          </div>
+
+          {/* ================= FINANCE ================= */}
+
+          <div className="mb-4">
+
+            <button
+              onClick={() => toggleMenu("finance")}
+              className="flex items-center justify-between w-full px-3 py-2 text-xs font-semibold text-gray-500 uppercase"
+            >
+              <span>FINANCE</span>
+              {!isCollapsed &&
+                (openMenu === "finance"
+                  ? <ChevronDown size={16} />
+                  : <ChevronRight size={16} />)}
+            </button>
+
+            {openMenu === "finance" && (
+
+              <div className="space-y-1 mt-2">
+
+                <Link href="/dashboard/InvoiceMatchingView"
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+                  <DollarSign size={20} />
+                  {!isCollapsed && <span>Invoices & Matching</span>}
+
+                </Link>
+
+              </div>
+
+            )}
+
+          </div>
+
+          {/* ================= BOTTOM LINKS ================= */}
+
+          {/*
+          <div className="mt-auto border-t border-gray-200 pt-4 px-2 space-y-1">
+
+            <Link href="/reports"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+              <BarChart3 size={20} />
               {!isCollapsed && <span>Reports</span>}
+
             </Link>
 
-            <Link href="/settings" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/settings")
-              ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`}>
-              <Settings size={20} className="min-w-[20px]" />
+            <Link href="/settings"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
+
+              <Settings size={20} />
               {!isCollapsed && <span>Settings</span>}
+
             </Link>
-          </div> */}
+
+          </div>
+          */}
+
         </nav>
       </div>
     </aside>

@@ -19,13 +19,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [toast, setToast] = useState<any>(null);
-
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const handleLogin = async () => {
   setLoading(true);
 
   try {
-    const res = await fetch("http://localhost:8000/auth/login", {
+    const res = await fetch(`${baseUrl}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include", // 🔑 required for refresh_token cookie
