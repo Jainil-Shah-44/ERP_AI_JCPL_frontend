@@ -63,7 +63,7 @@ export default function ViewPRPage() {
           <table className="w-full text-sm border">
             <thead className="bg-gray-50">
               <tr>
-                <th className="border px-3 py-2">Material Code</th>
+                {/* <th className="border px-3 py-2">Material Code</th> */}
                 <th className="border px-3 py-2">Material Name</th>
                 <th className="border px-3 py-2">Quantity</th>
                 <th className="border px-3 py-2">Unit</th>
@@ -74,10 +74,10 @@ export default function ViewPRPage() {
             <tbody>
               {pr.items.map((item: any) => (
                 <tr key={item.id}>
-                  <td className="border px-3 py-2">{item.material_code}</td>
+                  {/* <td className="border px-3 py-2">{item.material_code}</td> */}
                   <td className="border px-3 py-2">{item.material_name}</td>
                   <td className="border px-3 py-2">{item.requested_qty}</td>
-                  <td className="border px-3 py-2">{item.unit_id}</td>
+                  <td className="border px-3 py-2">{item.unit_name || "-"}</td>
                   <td className="border px-3 py-2">{item.estimated_rate}</td>
                   <td className="border px-3 py-2">
                     {item.required_by_date || "-"}
@@ -100,8 +100,13 @@ export default function ViewPRPage() {
         ) : (
           pr.attachments.map((file: any) => {
             const baseURL =
+<<<<<<< HEAD
               process.env.NEXT_PUBLIC_API_URL
             //   || "http://localhost:8000";
+=======
+            process.env.NEXT_PUBLIC_API_URL
+              // "http://103.196.187.61:8000/api";
+>>>>>>> dev-front
 
             const path = file.file_path?.startsWith("/")
               ? file.file_path

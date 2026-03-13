@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState , useEffect} from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Button from "@/components/ui/Button";
@@ -8,6 +8,7 @@ import MasterFormLayout from "@/components/layout/MasterFormLayout";
 import Toast from "@/components/ui/Toast";
 import { Eye, EyeOff } from "lucide-react";
 import { IoMdEye, IoMdEyeOff } from "react-icons/io";
+import { apiFetch } from "@/lib/api";
 
 type Props = {
   initialData?: any;
@@ -20,7 +21,6 @@ export default function UserForm({
   onSubmit,
   showPassword = true,
 }: Props) {
-
   const [form, setForm] = useState(
     initialData || {
       username: "",
@@ -29,53 +29,48 @@ export default function UserForm({
       role: "",
       location: "",
       password: "",
-    }
+    },
   );
 
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<any>(null);
   const [showPasswordField, setShowPasswordField] = useState(false);
   const [showConfirmPasswordField, setShowConfirmPasswordField] = useState(false);
+  const [roles, setRoles] = useState<any[]>([]);
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  useEffect(() => {
+  apiFetch("/roles")
+    .then((data) => setRoles(data))
+    .catch((err) => console.error("Failed to load roles", err));
+}, []);
   /* ================= VALIDATION ================= */
 
   const validate = (): string | null => {
+    if (!form.username.trim()) return "Username is required";
 
-    if (!form.username.trim())
-      return "Username is required";
+    if (!form.email.trim()) return "Email is required";
 
-    if (!form.email.trim())
-      return "Email is required";
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-    const emailRegex =
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(form.email)) return "Enter valid email address";
 
-    if (!emailRegex.test(form.email))
-      return "Enter valid email address";
-
-    if (!form.mobile_number)
-      return "Mobile number is required";
+    if (!form.mobile_number) return "Mobile number is required";
 
     if (!/^[0-9]{10}$/.test(form.mobile_number))
       return "Mobile number must be 10 digits";
 
-    if (!form.role.trim())
-      return "Role is required";
+    if (!form.role.trim()) return "Role is required";
 
-    if (!form.location.trim())
-      return "Location is required";
+    if (!form.location.trim()) return "Location is required";
 
     if (showPassword) {
+      if (!form.password) return "Password is required";
 
-      if (!form.password)
-        return "Password is required";
-
-      const passwordRegex =
-        /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
 
       if (!passwordRegex.test(form.password))
         return "Password must be 8+ characters with letters and numbers";
@@ -91,7 +86,6 @@ export default function UserForm({
   };
 
   const handleSubmit = async () => {
-
     const validationError = validate();
 
     if (validationError) {
@@ -105,7 +99,6 @@ export default function UserForm({
     } finally {
       setLoading(false);
     }
-
   };
 
   return (
@@ -122,10 +115,11 @@ export default function UserForm({
           />
         }
       >
-
         {/* Username */}
         <div>
-          <Label>Username <span className="text-red-500">*</span></Label>
+          <Label>
+            Username <span className="text-red-500">*</span>
+          </Label>
           <Input
             name="username"
             value={form.username}
@@ -136,7 +130,9 @@ export default function UserForm({
 
         {/* Email */}
         <div>
-          <Label>Email <span className="text-red-500">*</span></Label>
+          <Label>
+            Email <span className="text-red-500">*</span>
+          </Label>
           <Input
             type="email"
             name="email"
@@ -148,7 +144,9 @@ export default function UserForm({
 
         {/* Mobile */}
         <div>
-          <Label>Mobile Number <span className="text-red-500">*</span></Label>
+          <Label>
+            Mobile Number <span className="text-red-500">*</span>
+          </Label>
           <Input
             type="tel"
             name="mobile_number"
@@ -164,18 +162,31 @@ export default function UserForm({
 
         {/* Role */}
         <div>
-          <Label>Role <span className="text-red-500">*</span></Label>
-          <Input
+          <Label>
+            Role <span className="text-red-500">*</span>
+          </Label>
+
+          <select
             name="role"
             value={form.role}
             onChange={handleChange}
-            placeholder="Enter role"
-          />
+            className="border rounded p-2 w-full"
+          >
+            <option value="">Select Role</option>
+
+            {roles.map((r) => (
+              <option key={r.id} value={r.name}>
+                {r.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Location */}
         <div>
-          <Label>Location <span className="text-red-500">*</span></Label>
+          <Label>
+            Location <span className="text-red-500">*</span>
+          </Label>
           <Input
             name="location"
             value={form.location}
@@ -229,7 +240,6 @@ export default function UserForm({
             </span>
           </div>
         )}
-
       </MasterFormLayout>
 
       {toast && (

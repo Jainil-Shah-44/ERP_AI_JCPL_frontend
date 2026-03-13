@@ -313,6 +313,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
           </div>
 
+<<<<<<< HEAD
           {/* ================= FINANCE ================= */}
 
           <div className="mb-4">
@@ -355,6 +356,13 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
 
               <BarChart3 size={20} />
+=======
+          {/* Bottom links */}
+          {/* <div className="mt-auto border-t border-gray-200 pt-4 px-2 space-y-1">
+            <Link href="/reports" className={`flex items-center ${isCollapsed ? "justify-center" : "gap-3 px-3"} py-2.5 rounded-lg text-sm transition-colors ${isActive("/reports")
+              ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-100"}`} >
+              <BarChart3 size={20} className="min-w-[20px]" />
+>>>>>>> dev-front
               {!isCollapsed && <span>Reports</span>}
 
             </Link>
@@ -366,10 +374,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               {!isCollapsed && <span>Settings</span>}
 
             </Link>
+<<<<<<< HEAD
 
           </div>
           */}
 
+=======
+          </div> */}
+>>>>>>> dev-front
         </nav>
       </div>
     </aside>

@@ -9,16 +9,24 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <div className="flex">
-      <Sidebar open={sidebarOpen} />
+      <Sidebar
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+      />
 
-      <div className="flex-1 md:ml-64 min-h-screen bg-gray-50">
-        <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+      <div className={`flex-1 min-h-screen bg-gray-50 transition-all duration-300 ${isCollapsed ? "md:ml-16" : "md:ml-64"}`}>
+        
+        <Header onMenuClick={() => setIsCollapsed(!isCollapsed)} />
 
-        <main className="p-4">{children}</main>
+        <main className="p-4">
+          {children}
+        </main>
+
       </div>
     </div>
   );

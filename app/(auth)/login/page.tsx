@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/app/context/AuthContext";
 import Toast from "@/components/ui/Toast";
 
-
 export default function Login() {
   const router = useRouter();
   const { setAccessToken } = useAuth();
@@ -22,8 +21,9 @@ export default function Login() {
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const handleLogin = async () => {
-  setLoading(true);
+    setLoading(true);
 
+<<<<<<< HEAD
   try {
     const res = await fetch(`${baseUrl}/auth/login`, {
       method: "POST",
@@ -35,10 +35,45 @@ export default function Login() {
         password,
       }),
     });
+=======
+    try {
+      const res = await fetch(`${baseUrl}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // 🔑 required for refresh_token cookie
+        body: JSON.stringify({
+          company_code: companyCode,
+          username,
+          password,
+        }),
+      });
+>>>>>>> dev-front
 
-    if (!res.ok) {
-      throw new Error("Invalid credentials");
+      if (!res.ok) {
+        throw new Error("Invalid credentials");
+      }
+
+      const data = await res.json();
+
+      // ✅ Store access token ONLY in memory
+      setAccessToken(data.access_token);
+      setToast(true);
+      // 🔥 THIS WAS MISSING
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("permissions", JSON.stringify(data.permissions));
+      // ✅ Show success toast on login page
+      setShowSuccess(true);
+
+      // ⏳ Redirect after short delay
+      setTimeout(() => {
+        router.replace("/dashboard");
+      }, 2000);
+    } catch (err) {
+      alert("Login failed. Check credentials.");
+    } finally {
+      setLoading(false);
     }
+<<<<<<< HEAD
 
     const data = await res.json();
 
@@ -63,6 +98,9 @@ export default function Login() {
     setLoading(false);
   }
 };
+=======
+  };
+>>>>>>> dev-front
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -106,6 +144,7 @@ export default function Login() {
           />
         </div>
       </div>
+<<<<<<< HEAD
 
   {toast && (
         <Toast
@@ -120,6 +159,16 @@ export default function Login() {
       show={showSuccess}
       message="Logged in successfully"
     /> */}
+=======
+      {toast && (
+        <Toast
+          msg="Logged in successfully"
+          type="success"
+          position="top-center"
+          autoClose={2000}
+        />
+      )}
+>>>>>>> dev-front
     </div>
   );
 }
