@@ -100,13 +100,8 @@ export default function ViewPRPage() {
         ) : (
           pr.attachments.map((file: any) => {
             const baseURL =
-<<<<<<< HEAD
               process.env.NEXT_PUBLIC_API_URL
             //   || "http://localhost:8000";
-=======
-            process.env.NEXT_PUBLIC_API_URL
-              // "http://103.196.187.61:8000/api";
->>>>>>> dev-front
 
             const path = file.file_path?.startsWith("/")
               ? file.file_path

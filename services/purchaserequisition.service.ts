@@ -79,7 +79,7 @@ export const getPurchaseRequisitions = (
   limit: number = 20
 ) => {
   return apiFetch(
-    `/purchase-requisition/?page=${page}&limit=${limit}`,
+    `/procurement/purchase-requisition/?page=${page}&limit=${limit}`,
     {
       method: "GET",
     }

@@ -47,6 +47,7 @@ export default function Login() {
       // 🔥 THIS WAS MISSING
       localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("permissions", JSON.stringify(data.permissions));
+      localStorage.setItem("user", JSON.stringify(data.user));
       // ✅ Show success toast on login page
       setShowSuccess(true);
 

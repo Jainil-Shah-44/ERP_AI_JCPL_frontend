@@ -12,7 +12,7 @@ export type RawMaterialMaster = {
 };
 
 export const getRawMaterials = (): Promise<RawMaterialMaster[]> =>
-  apiFetch("/masters/raw-materials");
+  apiFetch("/masters/raw-material/");
 
 export const createRawMaterial = (
   data: Omit<RawMaterialMaster, "id">
