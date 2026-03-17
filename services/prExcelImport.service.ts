@@ -2,7 +2,7 @@ import { apiFetch } from "@/lib/api";
 
 export const importPRFromExcel = async (rows: any[]) => {
   try {
-    return await apiFetch("/purchase-requisition/import-excel", {
+    return await apiFetch("/procurement/purchase-requisition/import-excel", {
       method: "POST",
       body: JSON.stringify({ rows })
     });

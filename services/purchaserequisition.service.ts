@@ -30,7 +30,7 @@ export type CreatePurchaseRequisitionPayload = {
 export const createPurchaseRequisition = (
   data: CreatePurchaseRequisitionPayload
 ) =>
-  apiFetch("/purchase-requisition", {
+  apiFetch("/procurement/purchase-requisition", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -45,7 +45,7 @@ export const uploadPurchaseRequisitionAttachment = (
   formData.append("file", file);
 
   return apiFetch(
-    `/purchase-requisition/${prId}/attachment`,
+    `/procurement/purchase-requisition/${prId}/attachment`,
     {
       method: "POST",
       body: formData,
@@ -57,7 +57,7 @@ export const uploadPurchaseRequisitionAttachment = (
 
 export const submitPurchaseRequisition = (prId: string) => {
   return apiFetch(
-    `/purchase-requisition/${prId}/submit`,
+    `/procurement/purchase-requisition/${prId}/submit`,
     {
       method: "POST",
     }
@@ -93,7 +93,7 @@ export const approvePurchaseRequisition = (
   remarks: string
 ) => {
   return apiFetch(
-    `/purchase-requisition/${prId}/approve?remarks=${encodeURIComponent(
+    `/procurement/purchase-requisition/${prId}/approve?remarks=${encodeURIComponent(
       remarks
     )}`,
     {
@@ -109,7 +109,7 @@ export const rejectPurchaseRequisition = (
   remarks: string
 ) => {
   return apiFetch(
-    `/purchase-requisition/${prId}/reject?remarks=${encodeURIComponent(
+    `/procurement/purchase-requisition/${prId}/reject?remarks=${encodeURIComponent(
       remarks
     )}`,
     {
@@ -122,7 +122,7 @@ export const rejectPurchaseRequisition = (
 
 export const getPurchaseRequisitionAttachments = async (id: string) => {
     return await apiFetch(
-        `/purchase-requisition/${id}/attachments`,
+        `/procurement/purchase-requisition/${id}/attachments`,
         {
             method: "GET",
         }
@@ -133,7 +133,7 @@ export const getPurchaseRequisitionAttachments = async (id: string) => {
 
 export const getPurchaseRequisitionById = async (id: string) => {
     return await apiFetch(
-        `/purchase-requisition/${id}`,
+        `/procurement/purchase-requisition/${id}`,
         { method: "GET" }
     );
 };
@@ -144,7 +144,7 @@ export const updatePurchaseRequisition = async (
     data: any
 ) => {
     return await apiFetch(
-        `/purchase-requisition/${id}`,
+        `/procurement/purchase-requisition/${id}`,
         {
             method: "PUT",
             body: JSON.stringify(data),

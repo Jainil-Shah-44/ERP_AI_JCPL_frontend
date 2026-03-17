@@ -17,7 +17,7 @@ export const getRawMaterials = (): Promise<RawMaterialMaster[]> =>
 export const createRawMaterial = (
   data: Omit<RawMaterialMaster, "id">
 ) =>
-  apiFetch("/masters/raw-materials", {
+  apiFetch("/masters/raw-material", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -26,12 +26,12 @@ export const updateRawMaterial = (
   id: string,
   data: Partial<Omit<RawMaterialMaster, "id">>
 ) =>
-  apiFetch(`/masters/raw-materials/${id}`, {
+  apiFetch(`/masters/raw-material/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
   });
 
 export const deleteRawMaterial = (id: string) =>
-  apiFetch(`/masters/raw-materials/${id}`, {
+  apiFetch(`/masters/raw-material/${id}`, {
     method: "DELETE",
   });

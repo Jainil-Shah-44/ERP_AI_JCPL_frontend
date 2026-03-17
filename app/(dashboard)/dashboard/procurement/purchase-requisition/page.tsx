@@ -12,6 +12,7 @@ import {
   getPurchaseRequisitions,
   rejectPurchaseRequisition,
 } from "@/services/purchaserequisition.service";
+import { hasPermission } from "@/lib/permissions";
 
 export default function PurchaseRequisitionListPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -109,9 +110,11 @@ export default function PurchaseRequisitionListPage() {
           Purchase Requisition
         </h1>
 
-        <Link href="/dashboard/procurement/purchase-requisition/create">
-          <Button title="Create PR" />
-        </Link>
+        {hasPermission("PR_CREATE") && (
+  <Link href="/dashboard/procurement/purchase-requisition/create">
+    <Button title="Create PR" />
+  </Link>
+)}
       </div>
 
       {/* TABLE */}
@@ -169,7 +172,7 @@ export default function PurchaseRequisitionListPage() {
             header: "Actions",
             accessor: "id",
             render: (row) => {
-              if (row.status === "SUBMITTED") {
+              if (row.status === "SUBMITTED" && hasPermission("PR_APPROVE")) {
                 return (
                   <div className="flex gap-2">
                     <Button
@@ -194,7 +197,7 @@ export default function PurchaseRequisitionListPage() {
                 );
               }
 
-              if (row.status === "DRAFT") {
+              if (row.status === "DRAFT" && hasPermission("PR_EDIT")) {
                 return (
                   <Button
                     title="Edit"
@@ -208,7 +211,7 @@ export default function PurchaseRequisitionListPage() {
                 );
               }
 
-              if (row.status === "APPROVED") {
+              if (row.status === "APPROVED" && hasPermission("RFQ_CREATE")) {
                 return (
                   <Button
                     title="Create RFQ"

@@ -253,7 +253,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                   </Link>
                 )}
 
-                {canAccess("PURCHASE_CREATE") && (
+                {canAccess("RFQ_VIEW") && (
                   <Link href="/dashboard/procurement/rfq-management"
                     className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-gray-100">
 
