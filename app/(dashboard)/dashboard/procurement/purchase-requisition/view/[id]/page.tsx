@@ -107,7 +107,11 @@ export default function ViewPRPage() {
               ? file.file_path
               : `/${file.file_path}`;
 
-            const fullUrl = `${baseURL}${path}`;
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+            const BASE_URL = API_URL.replace("/api", "");
+
+            const fullUrl = `${BASE_URL}/uploads/${file.file_path}`;
 
             return (
               <div key={file.id} className="mb-2">

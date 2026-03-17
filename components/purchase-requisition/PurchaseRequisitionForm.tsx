@@ -574,17 +574,26 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
             {/* Existing files in edit mode */}
             {existingFiles.length > 0 && (
               <div className="text-sm space-y-1">
-                {existingFiles.map((f: any) => (
-                  <div key={f.id}>
-                    <a
-                      href={f.file_url}
-                      target="_blank"
-                      className="text-blue-600 underline"
-                    >
-                      {f.file_name}
-                    </a>
-                  </div>
-                ))}
+                {existingFiles.map((f: any) => {
+                  const API_URL =
+                    process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+                  const BASE_URL = API_URL.replace("/api", "");
+
+                  const fullUrl = `${BASE_URL}/uploads/${f.file_path}`;
+
+                  return (
+                    <div key={f.id}>
+                      <a
+                        href={fullUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline"
+                      >
+                        {f.file_name}
+                      </a>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

@@ -284,16 +284,13 @@ export default function PurchaseRequisitionListPage() {
               <p>No attachments found.</p>
             ) : (
               selectedDocs.map((doc: any) => {
-                const baseURL =
-                  process.env.NEXT_PUBLIC_API_URL
-                  // || "http://localhost:8000";
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-                const path = doc.file_path?.startsWith("/")
-                  ? doc.file_path
-                  : `/${doc.file_path}`;
+                // remove /api
+                const BASE_URL = API_URL.replace("/api", "");
 
-                const fullUrl = `${baseURL}${path}`;
-
+                const fullUrl = `${BASE_URL}/uploads/${doc.file_path}`;
+                
                 return (
                   <div key={doc.id} className="mb-3">
                     <a
