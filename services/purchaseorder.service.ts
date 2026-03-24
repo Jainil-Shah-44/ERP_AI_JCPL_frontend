@@ -30,3 +30,10 @@ export const createPO = (data: any) => {
     body: JSON.stringify(data),
   });
 };
+
+export const updatePO = (poId: string, data: any) => {
+  return apiFetch(`/purchase-order/${poId}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+};

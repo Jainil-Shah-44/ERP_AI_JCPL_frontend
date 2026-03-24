@@ -35,3 +35,8 @@ export const deleteRawMaterial = (id: string) =>
   apiFetch(`/masters/raw-material/${id}`, {
     method: "DELETE",
   });
+
+
+export const searchMaterials = (query: string) => {
+  return apiFetch(`/masters/raw-material/search?search=${query}`);
+};

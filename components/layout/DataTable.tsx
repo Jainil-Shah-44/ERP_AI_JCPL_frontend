@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 
 export type Column<T> = {
   header: string;
-  accessor: keyof T;
+  accessor?: keyof T;
   sortable?: boolean;
   render?: (row: T, index: number) => React.ReactNode; // ✅ index added
 };
@@ -29,10 +29,7 @@ export default function DataTable<T extends { id: number | string }>({
   // 🔍 Search filter
   const filteredData = useMemo(() => {
     return data.filter((row) =>
-      Object.values(row)
-        .join(" ")
-        .toLowerCase()
-        .includes(search.toLowerCase())
+      Object.values(row).join(" ").toLowerCase().includes(search.toLowerCase()),
     );
   }, [data, search]);
 
@@ -59,7 +56,7 @@ export default function DataTable<T extends { id: number | string }>({
 
   const paginatedData = sortedData.slice(
     (currentPage - 1) * pageSize,
-    currentPage * pageSize
+    currentPage * pageSize,
   );
 
   const handleSort = (key: keyof T) => {
@@ -73,7 +70,6 @@ export default function DataTable<T extends { id: number | string }>({
 
   return (
     <div className="space-y-4">
-
       {/* 🔍 Search */}
       <div className="flex justify-between items-center">
         <Input
@@ -99,11 +95,11 @@ export default function DataTable<T extends { id: number | string }>({
                     col.sortable ? "cursor-pointer" : ""
                   }`}
                   onClick={() =>
-                    col.sortable && handleSort(col.accessor)
+                    col.sortable && col.accessor && handleSort(col.accessor)
                   }
                 >
                   {col.header}
-                  {sortKey === col.accessor && (
+                  {col.accessor && sortKey === col.accessor && (
                     <span className="ml-1">
                       {sortDirection === "asc" ? "▲" : "▼"}
                     </span>
@@ -115,16 +111,17 @@ export default function DataTable<T extends { id: number | string }>({
 
           <tbody>
             {paginatedData.map((row, rowIndex) => {
-              const globalIndex =
-                rowIndex + (currentPage - 1) * pageSize; // ✅ correct index
+              const globalIndex = rowIndex + (currentPage - 1) * pageSize; // ✅ correct index
 
               return (
                 <tr key={row.id} className="hover:bg-gray-50">
                   {columns.map((col, colIndex) => (
                     <td key={colIndex} className="p-3 border-b">
                       {col.render
-                        ? col.render(row, globalIndex) // ✅ pass index
-                        : (row[col.accessor] as React.ReactNode)}
+                        ? col.render(row, globalIndex)
+                        : col.accessor
+                          ? (row[col.accessor] as React.ReactNode)
+                          : null}
                     </td>
                   ))}
                 </tr>

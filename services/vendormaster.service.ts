@@ -34,3 +34,8 @@ export const deleteVendor = (id: string) =>
   apiFetch(`/masters/vendors/${id}`, {
     method: "DELETE",
   });
+
+
+export const searchVendors = (query: string) => {
+  return apiFetch(`/masters/vendors/search?search=${query}`);
+};

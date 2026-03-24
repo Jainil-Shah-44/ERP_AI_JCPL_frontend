@@ -65,6 +65,36 @@ export default function POListPage() {
       header: "Status",
       accessor: "status",
     },
+    {
+      header: "Actions",
+      render: (row: PO) => (
+        <div className="flex gap-2">
+          {/* VIEW */}
+          <button
+            className="text-blue-600 underline text-sm"
+            onClick={() =>
+              router.push(`/dashboard/procurement/purchase-order/${row.id}`)
+            }
+          >
+            View
+          </button>
+
+          {/* EDIT */}
+          {row.status === "DRAFT" && (
+            <button
+              className="text-green-600 underline text-sm"
+              onClick={() =>
+                router.push(
+                  `/dashboard/procurement/purchase-order/${row.id}/edit`,
+                )
+              }
+            >
+              Edit
+            </button>
+          )}
+        </div>
+      ),
+    },
   ];
 
   return (

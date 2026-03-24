@@ -39,14 +39,10 @@ export default function PODetailPage() {
     <div className="p-6 space-y-6">
 
       {/* HEADER */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center border-b pb-2">
         <div>
-          <h1 className="text-xl font-semibold">
-            {po.po_number}
-          </h1>
-          <p className="text-sm text-gray-500">
-            Vendor: {po.vendor_name}
-          </p>
+          <h1 className="text-xl font-semibold">{po.po_number}</h1>
+          <p className="text-sm text-gray-500">{po.vendor_name}</p>
         </div>
 
         <span className="px-3 py-1 bg-gray-200 rounded text-sm">
@@ -54,27 +50,25 @@ export default function PODetailPage() {
         </span>
       </div>
 
-      {/* BASIC INFO */}
-      <div className="bg-white border rounded p-4 grid grid-cols-2 gap-4">
-        <p><strong>PO Date:</strong> {new Date(po.po_date).toLocaleDateString()}</p>
-        <p><strong>Created:</strong> {new Date(po.created_at).toLocaleString()}</p>
-        <p><strong>Total:</strong> ₹ {po.total_amount}</p>
-      </div>
+      {/* TOP SECTION */}
+      <div className="grid grid-cols-2 gap-4">
 
-      {/* VENDOR + LOGISTICS */}
-      <div className="bg-white border rounded p-4 grid grid-cols-2 gap-4">
-        <div>
-          <p><strong>Vendor Address:</strong></p>
-          <p>{po.vendor_address || "-"}</p>
-
-          <p className="mt-2"><strong>Contact:</strong> {po.vendor_contact || "-"}</p>
+        {/* VENDOR */}
+        <div className="bg-white border rounded p-4">
+          <p className="font-semibold mb-2">Vendor</p>
+          <p>{po.vendor_name}</p>
+          <p>{po.vendor_address_line1 || "-"}</p>
+          <p>{po.vendor_address_line2 || "-"}</p>
         </div>
 
-        <div>
+        {/* PO DETAILS */}
+        <div className="bg-white border rounded p-4">
+          <p><strong>Plot No:</strong> {po.factory_name || "-"}</p>
+          <p><strong>P.No:</strong> {po.plot_no}</p>
+          <p><strong>Date:</strong> {new Date(po.po_date).toLocaleDateString()}</p>
           <p><strong>Transporter:</strong> {po.transporter || "-"}</p>
-          <p><strong>Payment Terms:</strong> {po.payment_terms || "-"}</p>
-          <p><strong>Delivery Terms:</strong> {po.delivery_terms || "-"}</p>
         </div>
+
       </div>
 
       {/* ITEMS */}
@@ -84,25 +78,24 @@ export default function PODetailPage() {
         <table className="w-full text-sm border">
           <thead className="bg-gray-50">
             <tr>
-              <th className="border p-2">Material</th>
+              <th className="border p-2">S.No</th>
               <th className="border p-2">Description</th>
-              <th className="border p-2">HSN</th>
-              <th className="border p-2">Weight</th>
+              <th className="border p-2">Specification</th>
               <th className="border p-2">Qty</th>
               <th className="border p-2">Rate</th>
-              <th className="border p-2">Amount</th>
+              <th className="border p-2">Value</th>
             </tr>
           </thead>
+
           <tbody>
-            {po.items.map((item: any) => (
+            {po.items.map((item: any, index: number) => (
               <tr key={item.id}>
+                <td className="border p-2 text-center">{index + 1}</td>
                 <td className="border p-2">{item.material_name}</td>
                 <td className="border p-2">{item.description || "-"}</td>
-                <td className="border p-2">{item.hsn_code || "-"}</td>
-                <td className="border p-2">{item.weight || "-"}</td>
-                <td className="border p-2">{item.quantity}</td>
-                <td className="border p-2">₹ {item.rate}</td>
-                <td className="border p-2">₹ {item.amount}</td>
+                <td className="border p-2 text-center">{item.quantity}</td>
+                <td className="border p-2 text-right">₹ {item.rate}</td>
+                <td className="border p-2 text-right">₹ {item.amount}</td>
               </tr>
             ))}
           </tbody>
@@ -116,10 +109,26 @@ export default function PODetailPage() {
         <p className="font-bold text-lg">Total: ₹ {po.total_amount}</p>
       </div>
 
-      {/* INSTRUCTIONS */}
-      <div className="bg-white border rounded p-4">
-        <p><strong>Instructions:</strong></p>
-        <p>{po.other_instructions || "-"}</p>
+      {/* FOOTER SECTION */}
+      <div className="grid grid-cols-2 gap-4">
+
+        {/* LEFT */}
+        <div className="bg-white border rounded p-4">
+          <p><strong>Payment Terms:</strong> {po.payment_terms || "-"}</p>
+          <p><strong>Range:</strong> {po.factory_range || "-"}</p>
+          <p><strong>Division:</strong> {po.factory_division || "-"}</p>
+          <p><strong>Commissionerate:</strong> {po.factory_commissionerate || "-"}</p>
+          <p><strong>GSTIN:</strong> {po.factory_gstin || "-"}</p>
+        </div>
+
+        {/* RIGHT */}
+        <div className="bg-white border rounded p-4">
+          <p className="font-semibold">Other Instructions</p>
+          <p className="whitespace-pre-line">
+            {po.other_instructions || "-"}
+          </p>
+        </div>
+
       </div>
 
       {/* ACTION BUTTONS */}

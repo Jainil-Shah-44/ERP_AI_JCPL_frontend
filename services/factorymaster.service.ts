@@ -35,3 +35,7 @@ export const deleteFactory = (id: string) =>
   apiFetch(`/masters/factories/${id}`, {
     method: "DELETE",
   });
+
+export const searchFactories = (query: string) => {
+  return apiFetch(`/masters/factories/search?search=${query}`);
+};
