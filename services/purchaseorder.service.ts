@@ -23,3 +23,10 @@ export const cancelPO = (poId: string) => {
     method: "POST",
   });
 };
+
+export const createPO = (data: any) => {
+  return apiFetch("/purchase-order/", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+};

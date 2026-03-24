@@ -75,21 +75,30 @@ export async function apiFetch(
   });
 
   if (!response.ok) {
-    let errorMessage = "Request failed";
+  let errorMessage = "Request failed";
 
-    try {
-      const errorData = await response.json();
+  try {
+    const errorData = await response.json();
+
+    if (Array.isArray(errorData.detail)) {
+      errorMessage = errorData.detail
+        .map((err: any) => {
+          const field = err.loc?.join(" → ");
+          return `${field}: ${err.msg}`;
+        })
+        .join("\n");
+    } else {
       errorMessage =
         errorData.detail ||
         errorData.message ||
         JSON.stringify(errorData);
-    } catch {
-      errorMessage = response.statusText;
     }
-
-    throw new Error(errorMessage);
+  } catch {
+    errorMessage = response.statusText;
   }
 
+  throw new Error(errorMessage);
+}
   // handle 204
   if (response.status === 204) {
     return null;

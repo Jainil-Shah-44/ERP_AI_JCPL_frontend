@@ -24,7 +24,7 @@ export default function ExcelUpload({ onParsed }: Props) {
     const key = Object.keys(row).find((k) => {
       const normalized = normalize(k);
 
-      return possibleKeys.some((p) => normalized === normalize(p));
+      return possibleKeys.some((p) => normalized.includes(normalize(p)));
     });
 
     return key ? row[key] : "";
@@ -41,7 +41,9 @@ export default function ExcelUpload({ onParsed }: Props) {
 
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet);
+      const json = XLSX.utils.sheet_to_json<Record<string, any>>(sheet, {
+        defval: "", // ⭐ CRITICAL FIX
+      });
       if (!json.length) {
         setToast({
           msg: "Excel sheet empty",
@@ -51,18 +53,48 @@ export default function ExcelUpload({ onParsed }: Props) {
       }
 
       console.log(Object.keys(json[0]));
+      console.log(XLSX.utils.sheet_to_json(sheet, { header: 1 }));
 
       const parsed = json
         .filter((r) => getValue(r, ["ITEM DESCRIPTION"]))
         .map((r) => {
-          const arrival = getValue(r, [
-            "Tentative arrival Date",
-            "Tentative arrival \nDate",
-            "Tentative arrival \r\nDate",
-          ]);
+          const requestDateRaw = getValue(r, ["DATE OF REQUEST"]);
+          const prDate = formatDate(requestDateRaw) || null;
+
+          // 🔥 FIXED ARRIVAL DETECTION
+          const arrivalKey = Object.keys(r).find((k) =>
+            normalize(k).includes("arrival"),
+          );
+
+          // SAFE ACCESS
+          const arrivalRaw =
+            arrivalKey && r[arrivalKey] !== undefined ? r[arrivalKey] : "";
+
+          const arrivalDate = formatDate(arrivalRaw);
+
+          // FINAL LOGIC
+          let requiredDate = arrivalDate;
+
+          if (!requiredDate && prDate) {
+            const d = new Date(prDate);
+            d.setDate(d.getDate() + 7);
+
+            requiredDate = `${d.getFullYear()}-${String(
+              d.getMonth() + 1,
+            ).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          }
+
+          if (!arrivalDate) {
+            console.log("No arrival date → fallback to +7 days");
+          }
+
+          console.log("Row keys:", Object.keys(r));
+          console.log("Row data:", r);
+          console.log("Arrival key:", arrivalKey);
+          console.log("Arrival value:", arrivalRaw);
 
           return {
-            pr_date: formatDate(getValue(r, ["DATE OF REQUEST"])),
+            pr_date: prDate || null,
 
             material_name: String(getValue(r, ["ITEM DESCRIPTION"])).trim(),
 
@@ -78,11 +110,12 @@ export default function ExcelUpload({ onParsed }: Props) {
 
             department: String(getValue(r, ["Department"])).trim(),
 
-            required_by_date: arrival ? formatDate(arrival) : null,
+            required_by_date: requiredDate || null,
 
             remarks: String(getValue(r, ["REMARKS"])).trim(),
           };
         });
+
       setRows(parsed);
     } catch (err) {
       setToast({
@@ -95,28 +128,69 @@ export default function ExcelUpload({ onParsed }: Props) {
   const formatDate = (value: any) => {
     if (!value) return "";
 
-    // Excel numeric date
+    // ---------------- EXCEL SERIAL NUMBER ----------------
     if (typeof value === "number") {
       const parsed = XLSX.SSF.parse_date_code(value);
       if (!parsed) return "";
 
-      const y = parsed.y;
-      const m = String(parsed.m).padStart(2, "0");
-      const d = String(parsed.d).padStart(2, "0");
-
-      return `${y}-${m}-${d}`;
+      return `${parsed.y}-${String(parsed.m).padStart(2, "0")}-${String(parsed.d).padStart(2, "0")}`;
     }
 
-    // String date
-    const date = new Date(value);
+    // ---------------- DATE OBJECT ----------------
+    if (value instanceof Date) {
+      if (isNaN(value.getTime())) return "";
 
-    if (isNaN(date.getTime())) return "";
+      return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+    }
 
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
+    // ---------------- STRING HANDLING ----------------
+    if (typeof value === "string") {
+      let clean = value.trim();
 
-    return `${y}-${m}-${d}`;
+      if (!clean) return "";
+
+      // Replace dots with slashes (1.2.2024 → 1/2/2024)
+      clean = clean.replace(/\./g, "/");
+
+      // Replace multiple spaces
+      clean = clean.replace(/\s+/g, " ");
+
+      // ---------------- DD/MM/YYYY or MM/DD/YYYY ----------------
+      const slashMatch = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+      if (slashMatch) {
+        let [_, d, m, y] = slashMatch;
+
+        // Normalize year
+        if (y.length === 2) y = "20" + y;
+
+        // Heuristic: if first > 12 → it's DD/MM
+        if (Number(d) > 12) {
+          return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+        } else {
+          // assume DD/MM (India context)
+          return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+        }
+      }
+
+      // ---------------- DD-MM-YYYY ----------------
+      const dashMatch = clean.match(/^(\d{1,2})-(\d{1,2})-(\d{2,4})$/);
+      if (dashMatch) {
+        let [_, d, m, y] = dashMatch;
+
+        if (y.length === 2) y = "20" + y;
+
+        return `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+      }
+
+      // ---------------- TEXT MONTH FORMATS ----------------
+      // e.g. 1 Mar 2024 / Mar 1 2024
+      const parsedDate = new Date(clean);
+      if (!isNaN(parsedDate.getTime())) {
+        return `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, "0")}-${String(parsedDate.getDate()).padStart(2, "0")}`;
+      }
+    }
+
+    return "";
   };
 
   return (
@@ -159,7 +233,7 @@ export default function ExcelUpload({ onParsed }: Props) {
                 <th className="p-2">Unit</th>
                 <th className="p-2">Qty</th>
                 <th className="p-2">Department</th>
-                <th className="p-2">Arrival</th>
+                <th className="p-2">Expected Arrival Date</th>
               </tr>
             </thead>
 

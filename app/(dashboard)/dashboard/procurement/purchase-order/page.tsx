@@ -40,9 +40,7 @@ export default function POListPage() {
         <button
           className="text-blue-600 underline"
           onClick={() =>
-            router.push(
-              `/dashboard/procurement/purchase-order/${row.id}`
-            )
+            router.push(`/dashboard/procurement/purchase-order/${row.id}`)
           }
         >
           {row.po_number}
@@ -52,8 +50,7 @@ export default function POListPage() {
     {
       header: "PO Date",
       accessor: "po_date",
-      render: (row: PO) =>
-        new Date(row.po_date).toLocaleDateString(),
+      render: (row: PO) => new Date(row.po_date).toLocaleDateString(),
     },
     {
       header: "Vendor",
@@ -72,10 +69,16 @@ export default function POListPage() {
 
   return (
     <div className="p-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-semibold">Purchase Orders</h1>
 
-      <h1 className="text-xl font-semibold">
-        Purchase Orders
-      </h1>
+        <Button
+          title="Create PO"
+          onClick={() =>
+            router.push("/dashboard/procurement/purchase-order/create")
+          }
+        />
+      </div>
 
       <div className="flex gap-3 border-b pb-2">
         {STATUS_TABS.map((tab) => (
@@ -83,9 +86,7 @@ export default function POListPage() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-3 py-1 text-sm rounded ${
-              activeTab === tab
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100"
+              activeTab === tab ? "bg-blue-600 text-white" : "bg-gray-100"
             }`}
           >
             {tab}
@@ -94,7 +95,6 @@ export default function POListPage() {
       </div>
 
       <DataTable data={pos} columns={columns} pageSize={5} />
-
     </div>
   );
 }

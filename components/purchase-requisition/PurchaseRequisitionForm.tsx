@@ -69,7 +69,7 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
   const [toast, setToast] = useState<any>(null);
   const [mode, setMode] = useState<"manual" | "excel">("manual");
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
-
+  const [importErrors, setImportErrors] = useState<any[]>([]);
   /* ================= LOAD MASTER DATA ================= */
 
   useEffect(() => {
@@ -110,24 +110,39 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
         });
 
         setItems(
-          (data.items || []).map((i: any) => ({
-            material_id: i.material_id,
-            material_code: i.material_code,
-            material_name: i.material_name,
-            unit_id: i.unit_id,
-            unit_name: i.unit_name ?? "",
+          (data.items || []).map((i: any) => {
+            let requiredDate = i.required_by_date;
 
-            requested_qty: i.requested_qty ?? "",
-            estimated_rate: i.estimated_rate ?? "",
+            if (!requiredDate) {
+              const futureDate = new Date();
+              futureDate.setDate(futureDate.getDate() + 7);
 
-            department_id: i.department_id ?? "",
-            description: i.description ?? "",
-            remarks: i.remarks ?? "",
+              requiredDate =
+                futureDate.getFullYear() +
+                "-" +
+                String(futureDate.getMonth() + 1).padStart(2, "0") +
+                "-" +
+                String(futureDate.getDate()).padStart(2, "0");
+            }
 
-            required_by_date: i.required_by_date ?? "",
-          })),
+            return {
+              material_id: i.material_id,
+              material_code: i.material_code,
+              material_name: i.material_name,
+              unit_id: i.unit_id,
+              unit_name: i.unit_name ?? "",
+
+              requested_qty: i.requested_qty ?? "",
+              estimated_rate: i.estimated_rate ?? "",
+
+              department_id: i.department_id ?? "",
+              description: i.description ?? "",
+              remarks: i.remarks ?? "",
+
+              required_by_date: requiredDate, // FIXED
+            };
+          }),
         );
-
         setExistingFiles(data.attachments || []);
         setPrId(data.id);
       } catch (err) {
@@ -139,6 +154,8 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
   }, [editId]);
 
   /* ================= VALIDATION ================= */
+
+  console.log("Before validation:", items);
 
   const validateForm = (): string | null => {
     if (!header.factory_id) return "Factory is required";
@@ -155,8 +172,8 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
 
       if (!item.material_id) return `Material is required in row ${i + 1}`;
 
-      if (materialSet.has(item.material_id))
-        return "Duplicate materials are not allowed";
+      // if (materialSet.has(item.material_id))
+      //   return "Duplicate materials are not allowed";
 
       materialSet.add(item.material_id);
 
@@ -169,7 +186,10 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
       if (!item.department_id) return `Department required in row ${i + 1}`;
 
       // AUTO ADD REQUIRED DATE (TODAY + 7 DAYS)
-      if (!item.required_by_date) {
+      if (
+        item.required_by_date === null ||
+        item.required_by_date === undefined
+      ) {
         const futureDate = new Date();
         futureDate.setDate(futureDate.getDate() + 7);
 
@@ -197,9 +217,19 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
     const selected = Array.from(e.target.files);
 
     const validFiles = selected.filter((file) => {
-      const validType = ["application/pdf", "image/jpeg", "image/png"].includes(
-        file.type,
-      );
+      const allowedExtensions = ["pdf", "jpg", "jpeg", "png", "xls", "xlsx"];
+
+      const fileExtension = file.name.split(".").pop()?.toLowerCase();
+
+      const validType =
+        [
+          "application/pdf",
+          "image/jpeg",
+          "image/png",
+          "application/vnd.ms-excel",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ].includes(file.type) ||
+        allowedExtensions.includes(fileExtension || "");
 
       const validSize = file.size <= 5 * 1024 * 1024;
 
@@ -319,12 +349,32 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
     try {
       const res = await importPRFromExcel(rows);
 
-      setToast({
-        msg: `PR ${res.pr_number} created successfully`,
-        type: "success",
-      });
+      // 🔴 CASE 1: FULL FAILURE
+      if (!res.success) {
+        setToast({
+          msg: "Import failed. Please check errors.",
+          type: "error",
+        });
+        setImportErrors(res.errors || []);
+        console.log("Import Errors:", res.errors);
+        return;
+      }
 
-      console.log("Import response:", res);
+      // 🟡 CASE 2: PARTIAL SUCCESS
+      if (res.errors && res.errors.length > 0) {
+        setToast({
+          msg: `PR ${res.pr_number} created with ${res.errors.length} errors`,
+          type: "warning",
+        });
+        setImportErrors(res.errors);
+        console.log("Row Errors:", res.errors);
+      } else {
+        // 🟢 CASE 3: FULL SUCCESS
+        setToast({
+          msg: `PR ${res.pr_number} created successfully`,
+          type: "success",
+        });
+      }
 
       setMode("manual");
 
@@ -361,7 +411,25 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
         </div>
       )}
 
-      {mode === "excel" && <ExcelUpload onParsed={importExcelRows} />}
+      {mode === "excel" && (
+        <>
+          <ExcelUpload onParsed={importExcelRows} />
+
+          {importErrors.length > 0 && (
+            <div className="bg-red-50 border border-red-200 p-4 rounded mt-4">
+              <h3 className="text-red-600 font-semibold mb-2">
+                Import Errors ({importErrors.length})
+              </h3>
+
+              {importErrors.map((e, i) => (
+                <div key={i} className="text-red-700 text-sm">
+                  Row {e.row}: {e.message}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
 
       {mode === "manual" && (
         <>
@@ -530,7 +598,7 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
                 </div>
 
                 <div>
-                  <Label>Required Date *</Label>
+                  <Label>Expected Arrival Date</Label>
                   <Input
                     type="date"
                     value={item.required_by_date}
@@ -558,7 +626,7 @@ export default function PurchaseRequisitionForm({ editId }: Props) {
             <Input
               type="file"
               multiple
-              accept=".pdf,.jpg,.jpeg,.png"
+              accept=".pdf,.jpg,.jpeg,.png,.xls,.xlsx"
               onChange={handleFileChange}
             />
 

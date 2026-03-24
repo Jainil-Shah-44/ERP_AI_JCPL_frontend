@@ -35,22 +35,49 @@ export default function ViewPRPage() {
     return <div className="p-6 text-red-500">PR not found</div>;
   }
 
+  const formatDisplayDate = (value: string) => {
+  if (!value) return "-";
+
+  const date = new Date(value);
+
+  if (isNaN(date.getTime())) return "-";
+
+  return `${String(date.getDate()).padStart(2, "0")}-${String(
+    date.getMonth() + 1
+  ).padStart(2, "0")}-${date.getFullYear()}`;
+};
+
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">
-        View PR Details
-      </h1>
+      <h1 className="text-2xl font-semibold">View PR Details</h1>
 
       {/* HEADER INFO */}
       <div className="bg-white border rounded p-4 space-y-2">
-        <p><strong>PR Number:</strong> {pr.pr_number}</p>
-        <p><strong>Status:</strong> {pr.status}</p>
-        <p><strong>Factory:</strong> {pr.factory_name}</p>
-        <p><strong>Warehouse:</strong> {pr.warehouse_name}</p>
-        <p><strong>Department:</strong> {pr.department}</p>
-        <p><strong>Priority:</strong> {pr.priority}</p>
-        <p><strong>Remarks:</strong> {pr.remarks || "-"}</p>
-        <p><strong>Created At:</strong> {new Date(pr.created_at).toLocaleString()}</p>
+        <p>
+          <strong>PR Number:</strong> {pr.pr_number}
+        </p>
+        <p>
+          <strong>Status:</strong> {pr.status}
+        </p>
+        <p>
+          <strong>Factory:</strong> {pr.factory_name}
+        </p>
+        <p>
+          <strong>Warehouse:</strong> {pr.warehouse_name}
+        </p>
+        <p>
+          <strong>Department:</strong> {pr.department}
+        </p>
+        <p>
+          <strong>Priority:</strong> {pr.priority}
+        </p>
+        <p>
+          <strong>Remarks:</strong> {pr.remarks || "-"}
+        </p>
+        <p>
+          <strong>Created At:</strong>
+          {formatDisplayDate(pr.created_at)}
+        </p>
       </div>
 
       {/* ITEMS */}
@@ -63,25 +90,32 @@ export default function ViewPRPage() {
           <table className="w-full text-sm border">
             <thead className="bg-gray-50">
               <tr>
-                {/* <th className="border px-3 py-2">Material Code</th> */}
                 <th className="border px-3 py-2">Material Name</th>
+                <th className="border px-3 py-2">Size</th>
                 <th className="border px-3 py-2">Quantity</th>
                 <th className="border px-3 py-2">Unit</th>
-                <th className="border px-3 py-2">Estimated Rate</th>
-                <th className="border px-3 py-2">Required Date</th>
+                <th className="border px-3 py-2">Expected Arrival Date</th>
+                <th className="border px-3 py-2">Remarks</th>
               </tr>
             </thead>
             <tbody>
               {pr.items.map((item: any) => (
                 <tr key={item.id}>
-                  {/* <td className="border px-3 py-2">{item.material_code}</td> */}
                   <td className="border px-3 py-2">{item.material_name}</td>
-                  <td className="border px-3 py-2">{item.requested_qty}</td>
-                  <td className="border px-3 py-2">{item.unit_name || "-"}</td>
-                  <td className="border px-3 py-2">{item.estimated_rate}</td>
+
                   <td className="border px-3 py-2">
-                    {item.required_by_date || "-"}
+                    {item.description || "-"}
                   </td>
+
+                  <td className="border px-3 py-2">{item.requested_qty}</td>
+
+                  <td className="border px-3 py-2">{item.unit_name || "-"}</td>
+
+                  <td className="border px-3 py-2">
+                    {formatDisplayDate(item.required_by_date)}
+                  </td>
+
+                  <td className="border px-3 py-2">{item.remarks || "-"}</td>
                 </tr>
               ))}
             </tbody>
@@ -91,23 +125,21 @@ export default function ViewPRPage() {
 
       {/* ATTACHMENTS */}
       <div className="bg-white border rounded p-4">
-        <h2 className="text-lg font-semibold mb-3">
-          Attachments
-        </h2>
+        <h2 className="text-lg font-semibold mb-3">Attachments</h2>
 
         {pr.attachments.length === 0 ? (
           <p className="text-gray-500">No attachments</p>
         ) : (
           pr.attachments.map((file: any) => {
-            const baseURL =
-              process.env.NEXT_PUBLIC_API_URL
+            const baseURL = process.env.NEXT_PUBLIC_API_URL;
             //   || "http://localhost:8000";
 
             const path = file.file_path?.startsWith("/")
               ? file.file_path
               : `/${file.file_path}`;
 
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const API_URL =
+              process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
             const BASE_URL = API_URL.replace("/api", "");
 

@@ -13,8 +13,8 @@ export default function Login() {
   const { setAccessToken } = useAuth();
 
   const [companyCode, setCompanyCode] = useState("JEEVAN01");
-  const [username, setUsername] = useState("admin");
-  const [password, setPassword] = useState("admin123");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [toast, setToast] = useState<any>(null);
