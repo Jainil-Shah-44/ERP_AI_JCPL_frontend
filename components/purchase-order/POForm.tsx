@@ -7,6 +7,8 @@ import VendorSelect from "@/components/purchase-order/VendorSelect";
 import FactorySelect from "@/components/purchase-order/FactorySelect";
 import MaterialSelect from "@/components/purchase-order/MaterialSelect";
 
+const COMPANY_GSTIN = "24AABCJ5069J1, DT : 08.02.17";
+
 export default function POForm({
   mode = "create",
   initialData = null,
@@ -66,7 +68,6 @@ export default function POForm({
 
   const [items, setItems] = useState<any[]>([]);
 
-  
   useEffect(() => {
     if (initialData?.items) {
       setItems(initialData.items);
@@ -247,11 +248,12 @@ export default function POForm({
           }
         />
 
-        <Input
-          placeholder="GSTIN"
-          value={form.factory_gstin}
-          onChange={(e) => setForm({ ...form, factory_gstin: e.target.value })}
-        />
+        <div>
+          <label className="text-xs text-gray-500">GSTIN</label>
+          <div className="border p-2 bg-gray-100 text-gray-700">
+            {COMPANY_GSTIN}
+          </div>
+        </div>
       </div>
 
       {/* ITEMS */}
