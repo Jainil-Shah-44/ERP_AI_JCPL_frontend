@@ -19,7 +19,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {cards.map((card, i) => (
           <div
             key={i}
@@ -29,10 +29,10 @@ export default function DashboardPage() {
             <p className="text-2xl font-semibold mt-1">{card.value}</p>
           </div>
         ))}
-      </div>
+      </div> */}
 
       {/* Charts Placeholder */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white p-4 rounded-lg border h-64">
           <h3 className="font-medium mb-2">Monthly Purchase Spend</h3>
           <div className="h-full flex items-center justify-center text-gray-400">
@@ -46,16 +46,16 @@ export default function DashboardPage() {
             Chart Placeholder
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* AI Insight */}
-      <div className="bg-white border rounded-lg p-4">
+      {/* <div className="bg-white border rounded-lg p-4">
         <h4 className="font-semibold mb-1">🤖 AI Insight</h4>
         <p className="text-sm text-gray-600">
           Supplier A shows 15% better delivery consistency this quarter.
           Consider increasing allocation for time-sensitive materials.
         </p>
-      </div>
+      </div> */}
 
     </div>
   );
