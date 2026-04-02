@@ -9,6 +9,8 @@ import {
   cancelPO,
 } from "@/services/purchaseorder.service";
 
+const COMPANY_GSTIN = "24AABCJ5069J1ZG";
+
 export default function PODetailPage() {
   const { po_id } = useParams();
   const [po, setPo] = useState<any>(null);
@@ -37,7 +39,6 @@ export default function PODetailPage() {
 
   return (
     <div className="p-6 space-y-6">
-
       {/* HEADER */}
       <div className="flex justify-between items-center border-b pb-2">
         <div>
@@ -52,7 +53,6 @@ export default function PODetailPage() {
 
       {/* TOP SECTION */}
       <div className="grid grid-cols-2 gap-4">
-
         {/* VENDOR */}
         <div className="bg-white border rounded p-4">
           <p className="font-semibold mb-2">Vendor</p>
@@ -63,12 +63,20 @@ export default function PODetailPage() {
 
         {/* PO DETAILS */}
         <div className="bg-white border rounded p-4">
-          <p><strong>Plot No:</strong> {po.factory_name || "-"}</p>
-          <p><strong>P.No:</strong> {po.plot_no}</p>
-          <p><strong>Date:</strong> {new Date(po.po_date).toLocaleDateString()}</p>
-          <p><strong>Transporter:</strong> {po.transporter || "-"}</p>
+          <p>
+            <strong>Plot No:</strong> {po.factory_name || "-"}
+          </p>
+          <p>
+            <strong>P.No:</strong> {po.plot_no}
+          </p>
+          <p>
+            <strong>Date:</strong>{" "}
+            {new Date(po.po_date).toLocaleDateString("en-GB")}
+          </p>
+          <p>
+            <strong>Transporter:</strong> {po.transporter || "-"}
+          </p>
         </div>
-
       </div>
 
       {/* ITEMS */}
@@ -104,43 +112,61 @@ export default function PODetailPage() {
 
       {/* TAX SUMMARY */}
       <div className="bg-white border rounded p-4 text-right space-y-1">
-        <p>SGST ({po.sgst_percent}%): ₹ {po.sgst_amount}</p>
-        <p>CGST ({po.cgst_percent}%): ₹ {po.cgst_amount}</p>
+        {po.tax_type === "IGST" ? (
+          <p>
+            IGST ({po.igst_percent}%): ₹ {po.igst_amount}
+          </p>
+        ) : (
+          <>
+            <p>
+              SGST ({po.sgst_percent}%): ₹ {po.sgst_amount}
+            </p>
+            <p>
+              CGST ({po.cgst_percent}%): ₹ {po.cgst_amount}
+            </p>
+          </>
+        )}
+
         <p className="font-bold text-lg">Total: ₹ {po.total_amount}</p>
       </div>
-
       {/* FOOTER SECTION */}
       <div className="grid grid-cols-2 gap-4">
-
         {/* LEFT */}
         <div className="bg-white border rounded p-4">
-          <p><strong>Payment Terms:</strong> {po.payment_terms || "-"}</p>
-          <p><strong>Range:</strong> {po.factory_range || "-"}</p>
-          <p><strong>Division:</strong> {po.factory_division || "-"}</p>
-          <p><strong>Commissionerate:</strong> {po.factory_commissionerate || "-"}</p>
-          <p><strong>GSTIN:</strong> {po.factory_gstin || "-"}</p>
+          <p>
+            <strong>Payment Terms:</strong> {po.payment_terms || "-"}
+          </p>
+          <p>
+            <strong>Range:</strong> {po.factory_range || "-"}
+          </p>
+          <p>
+            <strong>Division:</strong> {po.factory_division || "-"}
+          </p>
+          <p>
+            <strong>Commissionerate:</strong>{" "}
+            {po.factory_commissionerate || "-"}
+          </p>
+          <p>
+            <strong>GSTIN:</strong> {COMPANY_GSTIN}
+          </p>
         </div>
 
         {/* RIGHT */}
         <div className="bg-white border rounded p-4">
           <p className="font-semibold">Other Instructions</p>
-          <p className="whitespace-pre-line">
-            {po.other_instructions || "-"}
-          </p>
+          <p className="whitespace-pre-line">{po.other_instructions || "-"}</p>
         </div>
-
       </div>
 
       {/* ACTION BUTTONS */}
       <div className="flex gap-4 flex-wrap">
-
         <Button
           title="Download PDF"
           variant="secondary"
           onClick={() =>
             window.open(
               `${process.env.NEXT_PUBLIC_API_URL}/purchase-order/${po.id}/pdf`,
-              "_blank"
+              "_blank",
             )
           }
         />
@@ -152,16 +178,10 @@ export default function PODetailPage() {
               variant="primary"
               onClick={handleRelease}
             />
-            <Button
-              title="Cancel PO"
-              variant="danger"
-              onClick={handleCancel}
-            />
+            <Button title="Cancel PO" variant="danger" onClick={handleCancel} />
           </>
         )}
-
       </div>
-
     </div>
   );
 }

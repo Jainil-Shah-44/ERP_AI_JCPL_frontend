@@ -17,6 +17,10 @@ type FactoryFormData = {
   incharge_name?: string;
   mobile_number?: string;
   email?: string;
+  range_?: string;
+  division?: string;
+  commissionerate?: string;
+  gstin?: string;
 };
 
 type Props = {
@@ -24,11 +28,7 @@ type Props = {
   onSubmit: (data: FactoryFormData) => Promise<void>;
 };
 
-export default function FactoryMasterForm({
-  initialData,
-  onSubmit,
-}: Props) {
-
+export default function FactoryMasterForm({ initialData, onSubmit }: Props) {
   const [form, setForm] = useState<FactoryFormData>({
     name: initialData?.name || "",
     description: initialData?.description || "",
@@ -39,15 +39,18 @@ export default function FactoryMasterForm({
     incharge_name: initialData?.incharge_name || "",
     mobile_number: initialData?.mobile_number || "",
     email: initialData?.email || "",
+    range_: initialData?.range_ || "",
+    division: initialData?.division || "",
+    commissionerate: initialData?.commissionerate || "",
+    gstin: initialData?.gstin || "",
   });
 
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<any>(null);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-
     const { name, value } = e.target;
 
     if (name === "mobile_number") {
@@ -57,45 +60,33 @@ export default function FactoryMasterForm({
     }
 
     setForm((prev) => ({ ...prev, [name]: value }));
-
   };
 
   /* ================= VALIDATION ================= */
 
   const validate = (): string | null => {
+    if (!form.name?.trim()) return "Location name is required";
 
-    if (!form.name?.trim())
-      return "Location name is required";
+    
+    if (!form.address1?.trim()) return "Address line 1 is required";
 
-    if (!form.coordinates?.trim())
-      return "Coordinates are required";
+    if (!form.incharge_name?.trim()) return "Incharge name is required";
 
-    if (!form.address1?.trim())
-      return "Address line 1 is required";
-
-    if (!form.incharge_name?.trim())
-      return "Incharge name is required";
-
-    if (!form.mobile_number)
-      return "Mobile number is required";
+    if (!form.mobile_number) return "Mobile number is required";
 
     if (!/^[0-9]{10}$/.test(form.mobile_number))
       return "Mobile number must be 10 digits";
 
-    if (!form.email?.trim())
-      return "Email is required";
+    if (!form.email?.trim()) return "Email is required";
 
-    const emailRegex =
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-    if (!emailRegex.test(form.email))
-      return "Enter valid email address";
+    if (!emailRegex.test(form.email)) return "Enter valid email address";
 
     return null;
   };
 
   const handleSubmit = async () => {
-
     const validationError = validate();
 
     if (validationError) {
@@ -109,7 +100,6 @@ export default function FactoryMasterForm({
     } finally {
       setLoading(false);
     }
-
   };
 
   return (
@@ -126,7 +116,6 @@ export default function FactoryMasterForm({
           />
         }
       >
-
         {/* ===== Location Info ===== */}
 
         <div className="md:col-span-2">
@@ -136,7 +125,9 @@ export default function FactoryMasterForm({
         </div>
 
         <div>
-          <Label>Location Name <span className="text-red-500">*</span></Label>
+          <Label>
+            Location Name <span className="text-red-500">*</span>
+          </Label>
           <Input
             name="name"
             value={form.name}
@@ -146,7 +137,9 @@ export default function FactoryMasterForm({
         </div>
 
         <div>
-          <Label>Coordinates <span className="text-red-500">*</span></Label>
+          <Label>
+            Coordinates <span className="text-red-500">*</span>
+          </Label>
           <Input
             name="coordinates"
             value={form.coordinates}
@@ -176,7 +169,9 @@ export default function FactoryMasterForm({
         </div>
 
         <div>
-          <Label>Address Line 1<span className="text-red-500">*</span></Label>
+          <Label>
+            Address Line 1<span className="text-red-500">*</span>
+          </Label>
           <Input
             name="address1"
             value={form.address1}
@@ -205,6 +200,52 @@ export default function FactoryMasterForm({
           />
         </div>
 
+
+        <div className="md:col-span-2 mt-4">
+          <h3 className="text-sm font-semibold text-gray-600">GST Details</h3>
+        </div>
+
+        <div>
+          <Label>Range</Label>
+          <Input
+            name="range_"
+            value={form.range_ || ""}
+            onChange={handleChange}
+            placeholder="Enter range"
+          />
+        </div>
+
+        <div>
+          <Label>Division</Label>
+          <Input
+            name="division"
+            value={form.division || ""}
+            onChange={handleChange}
+            placeholder="Enter division"
+          />
+        </div>
+
+        <div>
+          <Label>Commissionerate</Label>
+          <Input
+            name="commissionerate"
+            value={form.commissionerate || ""}
+            onChange={handleChange}
+            placeholder="Enter commissionerate"
+          />
+        </div>
+
+        <div>
+          <Label>GSTIN</Label>
+          <Input
+            name="gstin"
+            value={form.gstin || ""}
+            onChange={handleChange}
+            placeholder="Enter GSTIN"
+          />
+        </div>
+
+        
         {/* ===== Contact Info ===== */}
 
         <div className="md:col-span-2 mt-4">
@@ -214,7 +255,9 @@ export default function FactoryMasterForm({
         </div>
 
         <div>
-          <Label>Incharge Person Name <span className="text-red-500">*</span></Label>
+          <Label>
+            Incharge Person Name <span className="text-red-500">*</span>
+          </Label>
           <Input
             name="incharge_name"
             value={form.incharge_name}
@@ -224,7 +267,9 @@ export default function FactoryMasterForm({
         </div>
 
         <div>
-          <Label>Mobile Number <span className="text-red-500">*</span></Label>
+          <Label>
+            Mobile Number <span className="text-red-500">*</span>
+          </Label>
           <Input
             type="tel"
             name="mobile_number"
@@ -236,7 +281,9 @@ export default function FactoryMasterForm({
         </div>
 
         <div>
-          <Label>Email ID <span className="text-red-500">*</span></Label>
+          <Label>
+            Email ID <span className="text-red-500">*</span>
+          </Label>
           <Input
             type="email"
             name="email"
@@ -245,7 +292,6 @@ export default function FactoryMasterForm({
             placeholder="Enter email address"
           />
         </div>
-
       </MasterFormLayout>
 
       {toast && (

@@ -7,7 +7,7 @@ import VendorSelect from "@/components/purchase-order/VendorSelect";
 import FactorySelect from "@/components/purchase-order/FactorySelect";
 import MaterialSelect from "@/components/purchase-order/MaterialSelect";
 
-const COMPANY_GSTIN = "24AABCJ5069J1, DT : 08.02.17";
+const COMPANY_GSTIN = "24AABCJ5069J1ZG";
 
 export default function POForm({
   mode = "create",
@@ -36,7 +36,11 @@ export default function POForm({
     other_instructions: "",
     sgst_percent: 9,
     cgst_percent: 9,
+    tax_type: "GST",
+    tax_percent: 18, // NEW
+    igst_percent: 0,
   });
+  const [deliveryDate, setDeliveryDate] = useState("");
 
   useEffect(() => {
     if (initialData) {
@@ -62,7 +66,18 @@ export default function POForm({
 
         sgst_percent: initialData.sgst_percent || 9,
         cgst_percent: initialData.cgst_percent || 9,
+        tax_type: initialData.tax_type || "GST",
+        tax_percent:
+          initialData.tax_type === "IGST"
+            ? initialData.igst_percent
+            : (initialData.sgst_percent || 0) * 2,
+        igst_percent: initialData.igst_percent || 0,
+        
       });
+      // Extract delivery date from instructions (if exists)
+const match = initialData.other_instructions?.match(/Delivery Date:\s*(\d{4}-\d{2}-\d{2})/);
+
+setDeliveryDate(match ? match[1] : "");
     }
   }, [initialData]);
 
@@ -88,21 +103,27 @@ export default function POForm({
   }, [initialData]);
 
   // 🧮 totals
+  const round2 = (num: number) => Math.round(num * 100) / 100;
+
   const calculateTotals = () => {
-    const subtotal = items.reduce(
-      (sum, item) => sum + item.quantity * item.rate,
-      0,
+    const subtotal = round2(
+      items.reduce((sum, item) => sum + item.quantity * item.rate, 0),
     );
 
-    const sgst = (subtotal * form.sgst_percent) / 100;
-    const cgst = (subtotal * form.cgst_percent) / 100;
+    let sgst = 0;
+    let cgst = 0;
+    let igst = 0;
 
-    return {
-      subtotal,
-      sgst,
-      cgst,
-      total: subtotal + sgst + cgst,
-    };
+    if (form.tax_type === "IGST") {
+      igst = round2((subtotal * form.igst_percent) / 100);
+    } else {
+      sgst = round2((subtotal * form.sgst_percent) / 100);
+      cgst = round2((subtotal * form.cgst_percent) / 100);
+    }
+
+    const total = round2(subtotal + sgst + cgst + igst);
+
+    return { subtotal, sgst, cgst, igst, total };
   };
 
   const totals = calculateTotals();
@@ -133,11 +154,22 @@ export default function POForm({
   };
 
   const handleSubmit = async () => {
-    await onSubmit({
-      ...form,
-      items,
-    });
-  };
+  let instructions = form.other_instructions || "";
+
+  // Remove existing delivery date if already present
+  instructions = instructions.replace(/Delivery Date:.*\n?/g, "");
+
+  // Add new delivery date
+  if (deliveryDate) {
+    instructions = `Delivery Date: ${deliveryDate}\n${instructions}`;
+  }
+
+  await onSubmit({
+    ...form,
+    other_instructions: instructions,
+    items,
+  });
+};
 
   return (
     <div className="space-y-6">
@@ -216,14 +248,26 @@ export default function POForm({
             }
           />
 
-          <textarea
-            placeholder="Other Instructions"
-            value={form.other_instructions}
-            onChange={(e) =>
-              setForm({ ...form, other_instructions: e.target.value })
-            }
-            className="border p-2 w-full rounded resize-y min-h-[80px]"
-          />
+          <div className="space-y-2">
+  <div className="flex gap-4 items-center">
+    <label className="text-sm font-medium">Delivery Date</label>
+    <input
+      type="date"
+      value={deliveryDate}
+      onChange={(e) => setDeliveryDate(e.target.value)}
+      className="border p-2 rounded"
+    />
+  </div>
+
+  <textarea
+    placeholder="Other Instructions"
+    value={form.other_instructions}
+    onChange={(e) =>
+      setForm({ ...form, other_instructions: e.target.value })
+    }
+    className="border p-2 w-full rounded resize-y min-h-[80px]"
+  />
+</div>
         </div>
 
         <Input
@@ -354,7 +398,7 @@ export default function POForm({
               <div>
                 <label className="text-xs text-gray-500">Amount</label>
                 <div className="p-2 border bg-gray-100">
-                  ₹ {(item.quantity * item.rate || 0).toFixed(2)}
+                  ₹ {round2(item.quantity * item.rate || 0).toFixed(2)}
                 </div>
               </div>
 
@@ -376,12 +420,86 @@ export default function POForm({
         </div>
       </div>
 
+      <div className="flex gap-6 items-center">
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            checked={form.tax_type === "GST"}
+            onChange={() =>
+              setForm({
+                ...form,
+                tax_type: "GST",
+                sgst_percent: form.tax_percent / 2,
+                cgst_percent: form.tax_percent / 2,
+                igst_percent: 0,
+              })
+            }
+          />
+          GST (SGST + CGST)
+        </label>
+
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            checked={form.tax_type === "IGST"}
+            onChange={() =>
+              setForm({
+                ...form,
+                tax_type: "IGST",
+                sgst_percent: 0,
+                cgst_percent: 0,
+                igst_percent: form.tax_percent,
+              })
+            }
+          />
+          IGST
+        </label>
+      </div>
+
+      <select
+        className="border p-2 rounded"
+        value={form.tax_percent}
+        onChange={(e) => {
+          const percent = Number(e.target.value);
+
+          if (form.tax_type === "IGST") {
+            setForm({
+              ...form,
+              tax_percent: percent,
+              igst_percent: percent,
+              sgst_percent: 0,
+              cgst_percent: 0,
+            });
+          } else {
+            setForm({
+              ...form,
+              tax_percent: percent,
+              sgst_percent: percent / 2,
+              cgst_percent: percent / 2,
+              igst_percent: 0,
+            });
+          }
+        }}
+      >
+        <option value={0}>0%</option>
+        <option value={5}>5%</option>
+        <option value={18}>18%</option>
+      </select>
+
       {/* TOTALS */}
       <div className="bg-white border rounded p-4">
-        <p>Subtotal: ₹ {totals.subtotal}</p>
-        <p>SGST: ₹ {totals.sgst}</p>
-        <p>CGST: ₹ {totals.cgst}</p>
-        <p className="font-bold">Total: ₹ {totals.total}</p>
+        <p>Subtotal: ₹ {totals.subtotal.toFixed(2)}</p>
+
+        {form.tax_type === "IGST" ? (
+          <p>IGST: ₹ {totals.igst.toFixed(2)}</p>
+        ) : (
+          <>
+            <p>SGST: ₹ {totals.sgst.toFixed(2)}</p>
+            <p>CGST: ₹ {totals.cgst.toFixed(2)}</p>
+          </>
+        )}
+
+        <p className="font-bold">Total: ₹ {totals.total.toFixed(2)}</p>
       </div>
 
       <Button
