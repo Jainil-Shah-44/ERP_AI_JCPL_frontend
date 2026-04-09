@@ -22,10 +22,14 @@ export default function MaterialSelect({
 
   // 🔹 Prefill
   useEffect(() => {
-    if (displayName) {
+    setQuery(displayName || "");
+  }, [displayName]);
+
+  useEffect(() => {
+    if (!query && displayName) {
       setQuery(displayName);
     }
-  }, [displayName]);
+  }, []);
 
   // 🔍 Search
   useEffect(() => {
@@ -49,18 +53,28 @@ export default function MaterialSelect({
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
     <div ref={wrapperRef} className="relative w-full">
       <input
-        value={query}
+        value={query || ""}
         placeholder="Search Material..."
         onChange={(e) => {
-          setQuery(e.target.value);
+          const value = e.target.value;
+
+          setQuery(value);
           setOpen(true);
+
+          // 🔥 CRITICAL: update parent immediately
+          onSelect({
+            id: "",
+            material_name: value,
+            unit_id: null,
+            unit_name: "",
+            source: "po",
+          });
         }}
         className="border p-1 w-full"
       />

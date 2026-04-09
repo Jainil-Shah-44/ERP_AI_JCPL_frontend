@@ -19,6 +19,7 @@ export type Factory = {
 export type Material = {
   id: string;
   material_name: string;
-  unit_id: string;
-  unit_name: string;
+  unit_id?: string | null;
+  unit_name?: string;
+  source?: "master" | "po";
 };

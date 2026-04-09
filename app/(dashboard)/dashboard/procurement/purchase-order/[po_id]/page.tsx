@@ -71,7 +71,12 @@ export default function PODetailPage() {
           </p>
           <p>
             <strong>Date:</strong>{" "}
-            {new Date(po.po_date).toLocaleDateString("en-GB")}
+            {po.po_date
+              ? (() => {
+                  const [y, m, d] = po.po_date.split("-");
+                  return `${d}/${m}/${y}`;
+                })()
+              : "-"}
           </p>
           <p>
             <strong>Transporter:</strong> {po.transporter || "-"}
@@ -103,7 +108,9 @@ export default function PODetailPage() {
                 <td className="border p-2">{item.description || "-"}</td>
                 <td className="border p-2 text-center">{item.quantity}</td>
                 <td className="border p-2 text-right">₹ {item.rate}</td>
-                <td className="border p-2 text-right">₹ {item.amount}</td>
+                <td className="border p-2 text-right">
+                  ₹ {Math.round(item.amount)}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -126,8 +133,9 @@ export default function PODetailPage() {
             </p>
           </>
         )}
-
-        <p className="font-bold text-lg">Total: ₹ {po.total_amount}</p>
+        <p className="font-bold text-lg">
+          Total: ₹ {Math.round(po.total_amount)}
+        </p>
       </div>
       {/* FOOTER SECTION */}
       <div className="grid grid-cols-2 gap-4">
@@ -154,7 +162,18 @@ export default function PODetailPage() {
         {/* RIGHT */}
         <div className="bg-white border rounded p-4">
           <p className="font-semibold">Other Instructions</p>
-          <p className="whitespace-pre-line">{po.other_instructions || "-"}</p>
+          <p className="whitespace-pre-line">
+            {po.other_instructions?.replace(
+              /Delivery Date:\s*(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})/,
+              (_: string, date: string) => {
+                if (date.includes("-")) {
+                  const [y, m, d] = date.split("-");
+                  return `Delivery Date: ${d}/${m}/${y}`;
+                }
+                return `Delivery Date: ${date}`; // already correct
+              },
+            ) || "-"}
+          </p>
         </div>
       </div>
 

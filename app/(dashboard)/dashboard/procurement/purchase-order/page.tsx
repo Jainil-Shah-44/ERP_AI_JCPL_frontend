@@ -10,6 +10,7 @@ type PO = {
   id: string;
   po_number: string;
   po_date: string;
+  plot_no: string;
   vendor_name: string;
   total_amount: number;
   status: string;
@@ -48,9 +49,18 @@ export default function POListPage() {
       ),
     },
     {
+      header: "P.No",
+      accessor: "plot_no",
+    },
+    {
       header: "PO Date",
       accessor: "po_date",
-      render: (row: PO) => new Date(row.po_date).toLocaleDateString(),
+      render: (row: PO) => {
+        if (!row.po_date) return "-";
+
+        const [year, month, day] = row.po_date.split("-");
+        return `${day}/${month}/${year}`;
+      },
     },
     {
       header: "Vendor",
@@ -59,7 +69,7 @@ export default function POListPage() {
     {
       header: "Total Amount",
       accessor: "total_amount",
-      render: (row: PO) => `₹ ${row.total_amount}`,
+      render: (row: PO) => `₹ ${Math.round(row.total_amount || 0)}`,
     },
     {
       header: "Status",

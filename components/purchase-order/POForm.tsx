@@ -72,12 +72,21 @@ export default function POForm({
             ? initialData.igst_percent
             : (initialData.sgst_percent || 0) * 2,
         igst_percent: initialData.igst_percent || 0,
-        
       });
       // Extract delivery date from instructions (if exists)
-const match = initialData.other_instructions?.match(/Delivery Date:\s*(\d{4}-\d{2}-\d{2})/);
+      const match = initialData.other_instructions?.match(
+        /Delivery Date:\s*(\d{4}-\d{2}-\d{2}|\d{2}\/\d{2}\/\d{4})/,
+      );
+      const formatToInputDate = (dateStr: string) => {
+        if (dateStr.includes("/")) {
+          // DD/MM/YYYY → YYYY-MM-DD
+          const [d, m, y] = dateStr.split("/");
+          return `${y}-${m}-${d}`;
+        }
+        return dateStr; // already YYYY-MM-DD
+      };
 
-setDeliveryDate(match ? match[1] : "");
+      setDeliveryDate(match ? formatToInputDate(match[1]) : "");
     }
   }, [initialData]);
 
@@ -85,7 +94,13 @@ setDeliveryDate(match ? match[1] : "");
 
   useEffect(() => {
     if (initialData?.items) {
-      setItems(initialData.items);
+      setItems(
+        initialData.items.map((item: any) => ({
+          ...item,
+          material_name: item.material_name || "",
+          unit_name: item.unit_name || "",
+        })),
+      );
     } else {
       setItems([
         {
@@ -154,22 +169,27 @@ setDeliveryDate(match ? match[1] : "");
   };
 
   const handleSubmit = async () => {
-  let instructions = form.other_instructions || "";
+    let instructions = form.other_instructions || "";
 
-  // Remove existing delivery date if already present
-  instructions = instructions.replace(/Delivery Date:.*\n?/g, "");
+    // Remove existing delivery date if already present
+    instructions = instructions.replace(/Delivery Date:.*\n?/g, "");
 
-  // Add new delivery date
-  if (deliveryDate) {
-    instructions = `Delivery Date: ${deliveryDate}\n${instructions}`;
-  }
+    // Add new delivery date
+    const formatDate = (dateStr: string) => {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("en-GB");
+    };
 
-  await onSubmit({
-    ...form,
-    other_instructions: instructions,
-    items,
-  });
-};
+    if (deliveryDate) {
+      instructions = `Delivery Date: ${formatDate(deliveryDate)}\n${instructions}`;
+    }
+
+    await onSubmit({
+      ...form,
+      other_instructions: instructions,
+      items,
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -249,25 +269,25 @@ setDeliveryDate(match ? match[1] : "");
           />
 
           <div className="space-y-2">
-  <div className="flex gap-4 items-center">
-    <label className="text-sm font-medium">Delivery Date</label>
-    <input
-      type="date"
-      value={deliveryDate}
-      onChange={(e) => setDeliveryDate(e.target.value)}
-      className="border p-2 rounded"
-    />
-  </div>
+            <div className="flex gap-4 items-center">
+              <label className="text-sm font-medium">Delivery Date</label>
+              <input
+                type="date"
+                value={deliveryDate}
+                onChange={(e) => setDeliveryDate(e.target.value)}
+                className="border p-2 rounded"
+              />
+            </div>
 
-  <textarea
-    placeholder="Other Instructions"
-    value={form.other_instructions}
-    onChange={(e) =>
-      setForm({ ...form, other_instructions: e.target.value })
-    }
-    className="border p-2 w-full rounded resize-y min-h-[80px]"
-  />
-</div>
+            <textarea
+              placeholder="Other Instructions"
+              value={form.other_instructions}
+              onChange={(e) =>
+                setForm({ ...form, other_instructions: e.target.value })
+              }
+              className="border p-2 w-full rounded resize-y min-h-[80px]"
+            />
+          </div>
         </div>
 
         <Input
@@ -312,14 +332,36 @@ setDeliveryDate(match ? match[1] : "");
                   value={item.material_id}
                   displayName={item.material_name}
                   onSelect={(material) => {
+                    // Always set name
                     handleItemChange(
                       index,
                       "material_name",
                       material.material_name,
                     );
-                    handleItemChange(index, "material_id", material.id);
-                    handleItemChange(index, "unit_id", material.unit_id);
-                    handleItemChange(index, "unit_name", material.unit_name);
+
+                    if (material.source === "po") {
+                      // 🔴 Custom material (no master mapping)
+                      handleItemChange(index, "material_id", null);
+                      handleItemChange(index, "unit_id", null);
+                      handleItemChange(
+                        index,
+                        "unit_name",
+                        material.unit_name || "",
+                      );
+                    } else {
+                      // 🟢 Master material
+                      handleItemChange(index, "material_id", material.id);
+                      handleItemChange(
+                        index,
+                        "unit_id",
+                        material.unit_id || null,
+                      );
+                      handleItemChange(
+                        index,
+                        "unit_name",
+                        material.unit_name || "",
+                      );
+                    }
                   }}
                 />
               </div>
@@ -377,9 +419,10 @@ setDeliveryDate(match ? match[1] : "");
                 <input
                   className="border p-2 w-full"
                   value={item.unit_name || ""}
-                  onChange={(e) =>
-                    handleItemChange(index, "unit_name", e.target.value)
-                  }
+                  onChange={(e) => {
+                    handleItemChange(index, "unit_name", e.target.value);
+                    handleItemChange(index, "unit_id", null); // 🔴 important
+                  }}
                 />
               </div>
 
@@ -398,7 +441,7 @@ setDeliveryDate(match ? match[1] : "");
               <div>
                 <label className="text-xs text-gray-500">Amount</label>
                 <div className="p-2 border bg-gray-100">
-                  ₹ {round2(item.quantity * item.rate || 0).toFixed(2)}
+                  ₹ {Math.round(item.quantity * item.rate || 0)}
                 </div>
               </div>
 
@@ -499,7 +542,7 @@ setDeliveryDate(match ? match[1] : "");
           </>
         )}
 
-        <p className="font-bold">Total: ₹ {totals.total.toFixed(2)}</p>
+        <p className="font-bold">Total: ₹ {Math.round(totals.total)}</p>
       </div>
 
       <Button
