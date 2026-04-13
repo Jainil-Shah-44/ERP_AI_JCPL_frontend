@@ -1,6 +1,6 @@
 "use client";
 
-import { useState , useEffect} from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Button from "@/components/ui/Button";
@@ -29,24 +29,51 @@ export default function UserForm({
       role: "",
       location: "",
       password: "",
+      factory_ids: [],
     },
   );
 
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<any>(null);
   const [showPasswordField, setShowPasswordField] = useState(false);
-  const [showConfirmPasswordField, setShowConfirmPasswordField] = useState(false);
+  const [showConfirmPasswordField, setShowConfirmPasswordField] =
+    useState(false);
   const [roles, setRoles] = useState<any[]>([]);
+  const [factories, setFactories] = useState<any[]>([]);
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
   useEffect(() => {
-  apiFetch("/roles")
-    .then((data) => setRoles(data))
-    .catch((err) => console.error("Failed to load roles", err));
-}, []);
+    apiFetch("/roles")
+      .then((data) => setRoles(data))
+      .catch((err) => console.error("Failed to load roles", err));
+  }, []);
+
+  useEffect(() => {
+    apiFetch("/masters/factories")
+      .then((data) => setFactories(data))
+      .catch((err) => console.error("Failed to load factories", err));
+  }, []);
+
+  useEffect(() => {
+    if (["admin", "superadmin", "manager"].includes(form.role?.toLowerCase())) {
+      setForm((prev: any) => ({
+        ...prev,
+        factory_ids: [],
+      }));
+    }
+  }, [form.role]);
+
+  useEffect(() => {
+  if (!initialData) return;
+
+  setForm({
+    ...initialData,
+    factory_ids: initialData.factory_ids || [],   // 🔥 THIS FIX
+  });
+}, [initialData]);
   /* ================= VALIDATION ================= */
 
   const validate = (): string | null => {
@@ -75,11 +102,18 @@ export default function UserForm({
       if (!passwordRegex.test(form.password))
         return "Password must be 8+ characters with letters and numbers";
 
-      if (!form.confirm_password)
-        return "Confirm password is required";
+      if (!form.confirm_password) return "Confirm password is required";
 
       if (form.password !== form.confirm_password)
         return "Password and confirm password do not match";
+    }
+
+    if (
+      !["admin", "superadmin", "manager"].includes(form.role?.toLowerCase())
+    ) {
+      if (!form.factory_ids || form.factory_ids.length === 0) {
+        return "At least one factory must be selected";
+      }
     }
 
     return null;
@@ -182,6 +216,44 @@ export default function UserForm({
           </select>
         </div>
 
+        {/* FACTORY MULTI SELECT */}
+        {!["admin", "superadmin", "manager"].includes(
+          form.role?.toLowerCase(),
+        ) && (
+          <div>
+            <Label>
+              Factories <span className="text-red-500">*</span>
+            </Label>
+
+            <div className="border rounded p-3 max-h-40 overflow-y-auto space-y-2">
+              {factories.map((f) => (
+                <label key={f.id} className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={(form.factory_ids || []).includes(String(f.id))}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setForm({
+                          ...form,
+                          factory_ids: [...form.factory_ids, String(f.id)],
+                        });
+                      } else {
+                        setForm({
+                          ...form,
+                          factory_ids: form.factory_ids.filter(
+                            (id: string) => id !== f.id,
+                          ),
+                        });
+                      }
+                    }}
+                  />
+                  {f.name}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Location */}
         <div>
           <Label>
@@ -198,7 +270,9 @@ export default function UserForm({
         {/* Password */}
         {showPassword && (
           <div className="relative">
-            <Label>Password <span className="text-red-500">*</span></Label>
+            <Label>
+              Password <span className="text-red-500">*</span>
+            </Label>
 
             <Input
               type={showPasswordField ? "text" : "password"}
@@ -215,14 +289,13 @@ export default function UserForm({
               {showPasswordField ? <IoMdEyeOff /> : <IoMdEye />}
             </span>
           </div>
-
-
-
         )}
 
         {showPassword && (
           <div className="relative">
-            <Label>Confirm Password <span className="text-red-500">*</span></Label>
+            <Label>
+              Confirm Password <span className="text-red-500">*</span>
+            </Label>
 
             <Input
               type={showConfirmPasswordField ? "text" : "password"}
@@ -234,7 +307,9 @@ export default function UserForm({
 
             <span
               className="absolute right-3 top-9 cursor-pointer"
-              onClick={() => setShowConfirmPasswordField(!showConfirmPasswordField)}
+              onClick={() =>
+                setShowConfirmPasswordField(!showConfirmPasswordField)
+              }
             >
               {showConfirmPasswordField ? <IoMdEyeOff /> : <IoMdEye />}
             </span>

@@ -17,6 +17,7 @@ export const createUser = (data: {
   role: string;
   location: string;
   password: string;
+  factory_ids?: string[];
 }) => {
   return apiFetch("/masters/users", {
     method: "POST",
@@ -38,7 +39,8 @@ export const getUserById = async (id: string): Promise<User> => {
   return user;
 };
 
-export const updateUser = (id: string, data: Partial<User>) => {
+export const updateUser = (id: string, data: Partial<User> & {
+  factory_ids?: string[]}) => {
   return apiFetch(`/masters/users/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),

@@ -14,12 +14,14 @@ type Props<T> = {
   data: T[];
   columns: Column<T>[];
   pageSize?: number;
+  onRowClick?: (row: T) => void; // ✅ ADD THIS
 };
 
 export default function DataTable<T extends { id: number | string }>({
   data,
   columns,
   pageSize = 5,
+  onRowClick,
 }: Props<T>) {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<keyof T | null>(null);
@@ -114,7 +116,13 @@ export default function DataTable<T extends { id: number | string }>({
               const globalIndex = rowIndex + (currentPage - 1) * pageSize; // ✅ correct index
 
               return (
-                <tr key={row.id} className="hover:bg-gray-50">
+                <tr
+  key={row.id}
+  onClick={() => onRowClick?.(row)} // ✅ ADD THIS
+  className={`hover:bg-gray-50 ${
+    onRowClick ? "cursor-pointer" : ""
+  }`}
+>
                   {columns.map((col, colIndex) => (
                     <td key={colIndex} className="p-3 border-b">
                       {col.render
