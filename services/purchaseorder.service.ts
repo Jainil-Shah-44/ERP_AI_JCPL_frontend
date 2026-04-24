@@ -1,6 +1,6 @@
 import { apiFetch } from "@/lib/api";
 
-export const getPOList = (page = 1, limit = 20, status?: string) => {
+export const getPOList = (page = 1, limit = 10000, status?: string) => {
   let url = `/purchase-order?page=${page}&limit=${limit}`;
   if (status && status !== "ALL") {
     url += `&status=${status}`;

@@ -31,7 +31,7 @@ export default function PurchaseRequisitionListPage() {
   /* ================= LOAD ================= */
 
   const load = async () => {
-    const res = await getPurchaseRequisitions(1, 20);
+    const res = await getPurchaseRequisitions(1, 10000);
     setItems(res.data || []);
   };
 

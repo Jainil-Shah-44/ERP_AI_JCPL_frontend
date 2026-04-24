@@ -12,6 +12,8 @@ type VendorFormData = {
   mobile_number1?: string;
   mobile_number2?: string;
   office_number?: string;
+  address_line2?: string;
+  address_line3?: string;
   state?: string;
   pincode?: string;
   pan_number?: string;
@@ -23,15 +25,14 @@ type Props = {
   onSubmit: (data: VendorFormData) => Promise<void>;
 };
 
-export default function VendorMasterForm({
-  initialData,
-  onSubmit,
-}: Props) {
+export default function VendorMasterForm({ initialData, onSubmit }: Props) {
   const [form, setForm] = useState<VendorFormData>({
     name: initialData?.name || "",
     mobile_number1: initialData?.mobile_number1 || "",
     mobile_number2: initialData?.mobile_number2 || "",
     office_number: initialData?.office_number || "",
+    address_line2: initialData?.address_line2 || "",
+    address_line3: initialData?.address_line3 || "",
     state: initialData?.state || "",
     pincode: initialData?.pincode || "",
     pan_number: initialData?.pan_number || "",
@@ -49,30 +50,22 @@ export default function VendorMasterForm({
   /* ================= VALIDATION ================= */
 
   const validate = (): string | null => {
+    if (!form.name.trim()) return "Vendor name is required";
 
-    if (!form.name.trim())
-      return "Vendor name is required";
+    if (!form.mobile_number1?.trim()) return "Mobile number 1 is required";
 
-    if (!form.mobile_number1?.trim())
-      return "Mobile number 1 is required";
+    if (!form.state?.trim()) return "State is required";
 
-    if (!form.state?.trim())
-      return "State is required";
+    if (!form.pincode?.trim()) return "Pincode is required";
 
-    if (!form.pincode?.trim())
-      return "Pincode is required";
+    if (!form.pan_number?.trim()) return "PAN number is required";
 
-    if (!form.pan_number?.trim())
-      return "PAN number is required";
-
-    if (!form.gst_number?.trim())
-      return "GST number is required";
+    if (!form.gst_number?.trim()) return "GST number is required";
 
     return null;
   };
 
   const handleSubmit = async () => {
-
     const validationError = validate();
 
     if (validationError) {
@@ -104,12 +97,28 @@ export default function VendorMasterForm({
       >
         {/* Vendor Name */}
         <div className="md:col-span-2">
-          <Label>Vendor Name <span className="text-red-500">*</span></Label>
+          <Label>
+            Vendor Name <span className="text-red-500">*</span>
+          </Label>
           <Input
             name="name"
             value={form.name}
             onChange={handleChange}
             placeholder="Enter vendor name"
+          />
+
+          <Input
+            name="address_line2"
+            value={form.address_line2 || ""}
+            onChange={handleChange}
+            placeholder="Enter address line 1"
+          />
+
+          <Input
+            name="address_line3"
+            value={form.address_line3 || ""}
+            onChange={handleChange}
+            placeholder="Enter address line 2"
           />
         </div>
 
@@ -119,7 +128,9 @@ export default function VendorMasterForm({
         </h2>
 
         <div>
-          <Label>Mobile Number 1 <span className="text-red-500">*</span></Label>
+          <Label>
+            Mobile Number 1 <span className="text-red-500">*</span>
+          </Label>
           {/* <Input
             name="mobile_number1"
             value={form.mobile_number1}
@@ -171,7 +182,9 @@ export default function VendorMasterForm({
         </div>
 
         <div>
-          <Label>State <span className="text-red-500">*</span></Label>
+          <Label>
+            State <span className="text-red-500">*</span>
+          </Label>
           <Input
             name="state"
             value={form.state}
@@ -181,7 +194,9 @@ export default function VendorMasterForm({
         </div>
 
         <div>
-          <Label>Pincode <span className="text-red-500">*</span></Label>
+          <Label>
+            Pincode <span className="text-red-500">*</span>
+          </Label>
           <Input
             name="pincode"
             value={form.pincode}
@@ -191,7 +206,9 @@ export default function VendorMasterForm({
         </div>
 
         <div>
-          <Label>PAN Number <span className="text-red-500">*</span></Label>
+          <Label>
+            PAN Number <span className="text-red-500">*</span>
+          </Label>
           <Input
             name="pan_number"
             value={form.pan_number}
@@ -201,7 +218,9 @@ export default function VendorMasterForm({
         </div>
 
         <div>
-          <Label>GST Number <span className="text-red-500">*</span></Label>
+          <Label>
+            GST Number <span className="text-red-500">*</span>
+          </Label>
           <Input
             name="gst_number"
             value={form.gst_number}

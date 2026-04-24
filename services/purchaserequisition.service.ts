@@ -76,7 +76,7 @@ export type PurchaseRequisitionListResponse = {
 
 export const getPurchaseRequisitions = (
   page: number = 1,
-  limit: number = 20
+  limit: number = 10000
 ) => {
   return apiFetch(
     `/procurement/purchase-requisition/?page=${page}&limit=${limit}`,

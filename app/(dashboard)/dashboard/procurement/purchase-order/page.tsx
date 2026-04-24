@@ -58,7 +58,7 @@ export default function POListPage() {
     let statusParam = activeTab !== "ALL" ? `status=${activeTab}&` : "";
 
     const res = await apiFetch(
-      `/purchase-order?${statusParam}page=1&limit=20${factoryParam}`,
+      `/purchase-order?${statusParam}page=1&limit=10000${factoryParam}`,
     );
 
     setPos(res.data || []);
