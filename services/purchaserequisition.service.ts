@@ -74,25 +74,12 @@ export type PurchaseRequisitionListResponse = {
   data: any[]; // later you can create proper PR type instead of any
 };
 
-// Add the optional status parameter to your existing function
 export const getPurchaseRequisitions = (
   page: number = 1,
-  limit: number = 10000,
-  status?: string // NEW: Optional status parameter
+  limit: number = 10000
 ) => {
-  // Use URLSearchParams to cleanly build the query string
-  const params = new URLSearchParams({
-    page: page.toString(),
-    limit: limit.toString(),
-  });
-
-  // Only append status if it exists and isn't empty
-  if (status) {
-    params.append("status", status);
-  }
-
   return apiFetch(
-    `/procurement/purchase-requisition/?${params.toString()}`,
+    `/procurement/purchase-requisition/?page=${page}&limit=${limit}`,
     {
       method: "GET",
     }
