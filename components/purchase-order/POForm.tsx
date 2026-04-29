@@ -41,6 +41,7 @@ export default function POForm({
     igst_percent: 0,
   });
   const [deliveryDate, setDeliveryDate] = useState("");
+  const [charges, setCharges] = useState<any[]>([]);
 
   useEffect(() => {
     if (initialData) {
@@ -87,6 +88,9 @@ export default function POForm({
       };
 
       setDeliveryDate(match ? formatToInputDate(match[1]) : "");
+      setCharges(initialData.charges || []);
+    } else {
+      setCharges([]);
     }
   }, [initialData]);
 
@@ -118,27 +122,33 @@ export default function POForm({
   }, [initialData]);
 
   // 🧮 totals
-  const round2 = (num: number) => Math.round(num * 100) / 100;
+  const round2 = (num: number) => Number(num.toFixed(2));
 
   const calculateTotals = () => {
     const subtotal = round2(
       items.reduce((sum, item) => sum + item.quantity * item.rate, 0),
     );
 
+    const additionalCharges = round2(
+      charges.reduce((sum, c) => sum + (c.amount || 0), 0),
+    );
+
+    const taxable = round2(subtotal + additionalCharges);
+
     let sgst = 0;
     let cgst = 0;
     let igst = 0;
 
     if (form.tax_type === "IGST") {
-      igst = round2((subtotal * form.igst_percent) / 100);
+      igst = round2((taxable * form.igst_percent) / 100);
     } else {
-      sgst = round2((subtotal * form.sgst_percent) / 100);
-      cgst = round2((subtotal * form.cgst_percent) / 100);
+      sgst = round2((taxable * form.sgst_percent) / 100);
+      cgst = round2((taxable * form.cgst_percent) / 100);
     }
 
-    const total = round2(subtotal + sgst + cgst + igst);
+    const total = round2(taxable + sgst + cgst + igst);
 
-    return { subtotal, sgst, cgst, igst, total };
+    return { subtotal, additionalCharges, taxable, sgst, cgst, igst, total };
   };
 
   const totals = calculateTotals();
@@ -168,6 +178,20 @@ export default function POForm({
     setItems(items.filter((_, i) => i !== index));
   };
 
+  const handleChargeChange = (index: number, field: string, value: any) => {
+    const updated = [...charges];
+    updated[index][field] = value;
+    setCharges(updated);
+  };
+
+  const addChargeRow = () => {
+    setCharges([...charges, { title: "", amount: 0 }]);
+  };
+
+  const removeChargeRow = (index: number) => {
+    setCharges(charges.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
     let instructions = form.other_instructions || "";
 
@@ -188,6 +212,7 @@ export default function POForm({
       ...form,
       other_instructions: instructions,
       items,
+      charges,
     });
   };
 
@@ -441,7 +466,7 @@ export default function POForm({
               <div>
                 <label className="text-xs text-gray-500">Amount</label>
                 <div className="p-2 border bg-gray-100">
-                  ₹ {Math.round(item.quantity * item.rate || 0)}
+                  ₹ {(item.quantity * item.rate || 0).toFixed(2)}
                 </div>
               </div>
 
@@ -461,6 +486,45 @@ export default function POForm({
         <div className="flex justify-start">
           <Button title="+ Add Item" onClick={addRow} className="mt-2" />
         </div>
+      </div>
+
+      {/* ADDITIONAL CHARGES */}
+      <div className="bg-white border rounded p-4 space-y-3">
+        <h3 className="font-semibold">Additional Charges</h3>
+
+        {charges.map((charge, index) => (
+          <div key={index} className="grid grid-cols-5 gap-3 items-center">
+            <input
+              className="border p-2 col-span-2"
+              placeholder="Title (e.g. Freight)"
+              value={charge.title}
+              onChange={(e) =>
+                handleChargeChange(index, "title", e.target.value)
+              }
+            />
+
+            <input
+              type="number"
+              className="border p-2"
+              placeholder="Amount"
+              value={charge.amount ?? 0}
+              onChange={(e) =>
+                handleChargeChange(index, "amount", +e.target.value)
+              }
+            />
+
+            <button
+              className="text-red-500 text-sm"
+              onClick={() => removeChargeRow(index)}
+            >
+              Remove
+            </button>
+          </div>
+        ))}
+
+        <button className="text-blue-600 text-sm" onClick={addChargeRow}>
+          + Add Charge
+        </button>
       </div>
 
       <div className="flex gap-6 items-center">
@@ -532,6 +596,8 @@ export default function POForm({
       {/* TOTALS */}
       <div className="bg-white border rounded p-4">
         <p>Subtotal: ₹ {totals.subtotal.toFixed(2)}</p>
+        <p>Additional Charges: ₹ {totals.additionalCharges.toFixed(2)}</p>
+        <p>Taxable Amount: ₹ {totals.taxable.toFixed(2)}</p>
 
         {form.tax_type === "IGST" ? (
           <p>IGST: ₹ {totals.igst.toFixed(2)}</p>

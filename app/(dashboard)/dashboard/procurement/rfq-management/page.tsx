@@ -13,6 +13,7 @@ type RFQ = {
   rfq_date: string;
   status: string;
   source_pr_id: string;
+  source_pr_number: string;
   created_at: string;
 };
 
@@ -77,18 +78,28 @@ export default function RFQListPage() {
       header: "RFQ Number",
       accessor: "rfq_number",
       sortable: true,
+      render: (row) => (
+    <div className="whitespace-nowrap">
+      {row.rfq_number}
+    </div>
+  ),
     },
     {
       header: "RFQ Date",
       accessor: "rfq_date",
       render: (row: RFQ) =>
         row.rfq_date
-          ? new Date(row.rfq_date).toLocaleDateString()
+          ? new Date(row.rfq_date).toLocaleDateString("en-GB")
           : "-",
     },
     {
       header: "Source PR",
-      accessor: "source_pr_id",
+      accessor: "source_pr_number",
+      render: (row) => (
+    <div className="whitespace-nowrap">
+      {row.source_pr_number}
+    </div>
+  ),
     },
     {
       header: "Status",
@@ -100,14 +111,14 @@ export default function RFQListPage() {
       accessor: "created_at",
       render: (row: RFQ) =>
         row.created_at
-          ? new Date(row.created_at).toLocaleDateString()
+          ? new Date(row.created_at).toLocaleDateString("en-GB")
           : "-",
     },
     {
       header: "Actions",
       accessor: "id",
       render: (row: RFQ) => (
-        <div className="flex gap-2">
+        <div className="flex gap-0.5">
           <Button
             title="View"
             variant="secondary"

@@ -8,12 +8,20 @@ import {
   getRfqById,
   getRfqVendors,
   submitQuotation,
+  getVendorQuotation,
 } from "@/services/rfq.service";
 
 type RFQItem = {
   id: string;
   material_name: string;
   quantity: number;
+};
+
+type ExistingQuotation = {
+  rfq_item_id: string;
+  quoted_rate: number;
+  lead_time_days?: number;
+  remarks?: string;
 };
 
 type RFQVendor = {
@@ -30,64 +38,65 @@ type QuotationRow = {
 };
 
 export default function EnterQuotationPage() {
-  const { rfq_id } = useParams();
-  const router = useRouter();
+  const params = useParams();
+
+  const rfq_id = params.rfq_id as string;
+  const rfq_vendor_id = params.rfq_vendor_id as string;
 
   const [items, setItems] = useState<RFQItem[]>([]);
-  const [vendors, setVendors] = useState<RFQVendor[]>([]);
-  const [selectedVendor, setSelectedVendor] = useState<string>("");
+  const router = useRouter();
   const [quotationData, setQuotationData] = useState<QuotationRow[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!rfq_id) return;
+    if (!rfq_id || !rfq_vendor_id) return;
     loadData();
-  }, [rfq_id]);
+  }, [rfq_id, rfq_vendor_id]);
 
   const loadData = async () => {
     try {
-      const rfq = await getRfqById(rfq_id as string);
-      const vendorList = await getRfqVendors(rfq_id as string);
+      const rfq = await getRfqById(rfq_id);
+      const existing: ExistingQuotation[] = await getVendorQuotation(
+        rfq_id,
+        rfq_vendor_id,
+      );
+
+      const merged: QuotationRow[] = (rfq.items || []).map((item: any) => {
+        const found = existing.find(
+          (e) => String(e.rfq_item_id) === String(item.id),
+        );
+
+        return {
+          rfq_item_id: item.id,
+          quoted_rate: found ? String(found.quoted_rate) : "",
+          lead_time_days: found ? String(found.lead_time_days || "") : "",
+          remarks: found ? found.remarks || "" : "",
+        };
+      });
+
+      console.log("FINAL MERGED DATA:", merged);
 
       setItems(rfq.items || []);
-      setVendors(vendorList || []);
-
-      // Initialize quotation rows
-      const initialRows = (rfq.items || []).map((item: any) => ({
-        rfq_item_id: item.id,
-        quoted_rate: "",
-        lead_time_days: "",
-        remarks: "",
-      }));
-
-      setQuotationData(initialRows);
+      setQuotationData(merged);
     } catch (error) {
       console.error("Error loading RFQ data", error);
     }
   };
-
   const handleChange = (
     rfq_item_id: string,
     field: keyof QuotationRow,
-    value: string
+    value: string,
   ) => {
     setQuotationData((prev) =>
       prev.map((row) =>
-        row.rfq_item_id === rfq_item_id
-          ? { ...row, [field]: value }
-          : row
-      )
+        row.rfq_item_id === rfq_item_id ? { ...row, [field]: value } : row,
+      ),
     );
   };
 
   const handleSubmit = async () => {
-    if (!selectedVendor) {
-      alert("Please select vendor");
-      return;
-    }
-
     const invalid = quotationData.some(
-      (row) => !row.quoted_rate || !row.lead_time_days
+      (row) => !row.quoted_rate || !row.lead_time_days,
     );
 
     if (invalid) {
@@ -99,7 +108,7 @@ export default function EnterQuotationPage() {
       setLoading(true);
 
       const payload = {
-        rfq_vendor_id: selectedVendor,
+        rfq_vendor_id: rfq_vendor_id,
         items: quotationData.map((row) => ({
           rfq_item_id: row.rfq_item_id,
           quoted_rate: Number(row.quoted_rate),
@@ -107,14 +116,16 @@ export default function EnterQuotationPage() {
           remarks: row.remarks || "",
         })),
       };
+      console.log("SUBMIT PAYLOAD:", {
+        rfq_vendor_id: rfq_vendor_id,
+        items: quotationData,
+      });
 
       await submitQuotation(payload);
 
       alert("Quotation Submitted Successfully");
 
-      router.push(
-        `/dashboard/procurement/rfq-management/${rfq_id}`
-      );
+      router.push(`/dashboard/procurement/rfq-management/${rfq_id}`);
     } catch (error) {
       console.error("Submission failed", error);
       alert("Failed to submit quotation");
@@ -125,36 +136,11 @@ export default function EnterQuotationPage() {
 
   return (
     <div className="p-6 space-y-6">
-
-      <h1 className="text-xl font-semibold">
-        Enter Vendor Quotation
-      </h1>
-
-      {/* Vendor Selection */}
-      <div className="space-y-2">
-        <Label>Select Vendor</Label>
-        <select
-          className="border rounded px-3 py-2 w-full"
-          value={selectedVendor}
-          onChange={(e) => setSelectedVendor(e.target.value)}
-        >
-          <option value="">-- Select Vendor --</option>
-          {vendors.map((v) => (
-            <option
-              key={v.rfq_vendor_id}
-              value={v.rfq_vendor_id}
-            >
-              {v.vendor_id}
-            </option>
-          ))}
-        </select>
-      </div>
+      <h1 className="text-xl font-semibold">Enter Vendor Quotation</h1>
 
       {/* Items Table */}
       <div className="bg-white border rounded-lg p-4">
-        <h2 className="text-lg font-semibold mb-4">
-          RFQ Items
-        </h2>
+        <h2 className="text-lg font-semibold mb-4">RFQ Items</h2>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm border">
@@ -168,57 +154,53 @@ export default function EnterQuotationPage() {
               </tr>
             </thead>
             <tbody>
-              {items.map((item) => {
-                const row = quotationData.find(
-                  (r) => r.rfq_item_id === item.id
+              {quotationData.map((row) => {
+                const item = items.find(
+                  (i) => String(i.id) === String(row.rfq_item_id),
                 );
 
                 return (
-                  <tr key={item.id}>
-                    <td className="px-3 py-2 border">
-                      {item.material_name}
-                    </td>
-                    <td className="px-3 py-2 border">
-                      {item.quantity}
-                    </td>
+                  <tr key={row.rfq_item_id}>
+                    <td className="px-3 py-2 border">{item?.material_name}</td>
+                    <td className="px-3 py-2 border">{item?.quantity}</td>
+
                     <td className="px-3 py-2 border">
                       <input
                         type="number"
-                        className="border rounded p-1 w-24"
-                        value={row?.quoted_rate || ""}
+                        value={row.quoted_rate}
                         onChange={(e) =>
                           handleChange(
-                            item.id,
+                            row.rfq_item_id,
                             "quoted_rate",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                       />
                     </td>
+
                     <td className="px-3 py-2 border">
                       <input
                         type="number"
-                        className="border rounded p-1 w-24"
-                        value={row?.lead_time_days || ""}
+                        value={row.lead_time_days}
                         onChange={(e) =>
                           handleChange(
-                            item.id,
+                            row.rfq_item_id,
                             "lead_time_days",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                       />
                     </td>
+
                     <td className="px-3 py-2 border">
                       <input
                         type="text"
-                        className="border rounded p-1 w-40"
-                        value={row?.remarks || ""}
+                        value={row.remarks}
                         onChange={(e) =>
                           handleChange(
-                            item.id,
+                            row.rfq_item_id,
                             "remarks",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                       />
@@ -244,13 +226,10 @@ export default function EnterQuotationPage() {
           title="Cancel"
           variant="secondary"
           onClick={() =>
-            router.push(
-              `/dashboard/procurement/rfq-management/${rfq_id}`
-            )
+            router.push(`/dashboard/procurement/rfq-management/${rfq_id}`)
           }
         />
       </div>
-
     </div>
   );
 }

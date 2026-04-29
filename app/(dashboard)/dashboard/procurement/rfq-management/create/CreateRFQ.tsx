@@ -20,21 +20,26 @@ export default function CreateRFQ() {
   const [remarks, setRemarks] = useState("");
   const [warehouse, setWarehouse] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [prNumber, setPrNumber] = useState<string>("");
 
   // ✅ Load PR Data
   useEffect(() => {
     if (!prId) return;
 
     const fetchPR = async () => {
-      try {
-        const data = await getPurchaseRequisitionById(prId);
+  try {
+    const data = await getPurchaseRequisitionById(prId);
 
-        setItems(data.items || []);
-        setWarehouse(data.warehouse_name || data.warehouse_id || "");
-      } catch (error) {
-        console.error("Failed to fetch PR:", error);
-      }
-    };
+    setItems(data.items || []);
+    setWarehouse(data.warehouse_name || data.warehouse_id || "");
+
+    // ✅ ADD THIS
+    setPrNumber(data.pr_number || "");
+
+  } catch (error) {
+    console.error("Failed to fetch PR:", error);
+  }
+};
 
     fetchPR();
   }, [prId]);
@@ -42,46 +47,43 @@ export default function CreateRFQ() {
   // ✅ Checkbox handler
   const handleSelect = (id: string) => {
     setSelectedItems((prev) =>
-      prev.includes(id)
-        ? prev.filter((item) => item !== id)
-        : [...prev, id]
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id],
     );
   };
 
   // ✅ Submit
   const handleSubmit = async () => {
-  if (!prId) {
-    alert("PR ID not found");
-    return;
-  }
+    if (!prId) {
+      alert("PR ID not found");
+      return;
+    }
 
-  if (selectedItems.length === 0) {
-    alert("Please select at least one item");
-    return;
-  }
+    if (selectedItems.length === 0) {
+      alert("Please select at least one item");
+      return;
+    }
 
-  try {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const res = await createRFQ({
-      pr_id: prId,
-      pr_item_ids: selectedItems,
-      remarks,
-    });
+      const res = await createRFQ({
+        pr_id: prId,
+        pr_item_ids: selectedItems,
+        remarks,
+      });
 
-    // 🔥 Redirect to RFQ list
-    router.push("/dashboard/procurement/rfq-management");
+      // 🔥 Redirect to RFQ list
+      router.push("/dashboard/procurement/rfq-management");
 
-    // OR (Better ERP flow)
-    // router.push(`/dashboard/procurement/rfq-management/${res.id}`);
-
-  } catch (err) {
-    console.error(err);
-    alert("Error creating RFQ");
-  } finally {
-    setLoading(false);
-  }
-};
+      // OR (Better ERP flow)
+      // router.push(`/dashboard/procurement/rfq-management/${res.id}`);
+    } catch (err) {
+      console.error(err);
+      alert("Error creating RFQ");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <MasterFormLayout
@@ -98,8 +100,8 @@ export default function CreateRFQ() {
     >
       {/* PR Info Section */}
       <div className="md:col-span-2 space-y-1">
-        <Label>Purchase Requisition ID</Label>
-        <p className="text-sm text-gray-600">{prId}</p>
+        <Label>Purchase Requisition Number</Label>
+        <p className="text-sm text-gray-600">{prNumber || "-"}</p>
       </div>
 
       {/* <div className="md:col-span-2 space-y-1">
@@ -117,25 +119,21 @@ export default function CreateRFQ() {
               <tr>
                 <th className="px-4 py-2 text-left w-16">Select</th>
                 <th className="px-4 py-2 text-left">Material</th>
+                <th className="px-4 py-2 text-left">Description</th>
+                <th className="px-4 py-2 text-left">Remarks</th>
                 <th className="px-4 py-2 text-left">Quantity</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={3}
-                    className="text-center py-6 text-gray-400"
-                  >
+                  <td colSpan={5} className="text-center py-6 text-gray-400">
                     No items found
                   </td>
                 </tr>
               ) : (
                 items.map((item: any) => (
-                  <tr
-                    key={item.id}
-                    className="border-t hover:bg-gray-50"
-                  >
+                  <tr key={item.id} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-2">
                       <input
                         type="checkbox"
@@ -146,9 +144,9 @@ export default function CreateRFQ() {
                     <td className="px-4 py-2">
                       {item.material_name || item.material_id}
                     </td>
-                    <td className="px-4 py-2">
-                      {item.requested_qty}
-                    </td>
+                    <td className="px-4 py-2">{item.description || "-"}</td> 
+                    <td className="px-4 py-2">{item.remarks || "-"}</td> 
+                    <td className="px-4 py-2">{item.requested_qty}</td>
                   </tr>
                 ))
               )}

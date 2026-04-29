@@ -107,9 +107,11 @@ export default function PODetailPage() {
                 <td className="border p-2">{item.material_name}</td>
                 <td className="border p-2">{item.description || "-"}</td>
                 <td className="border p-2 text-center">{item.quantity}</td>
-                <td className="border p-2 text-right">₹ {item.rate}</td>
                 <td className="border p-2 text-right">
-                  ₹ {Math.round(item.amount)}
+                  ₹ {item.rate?.toFixed(2)}
+                </td>
+                <td className="border p-2 text-right">
+                  ₹ {item.amount?.toFixed(2)}
                 </td>
               </tr>
             ))}
@@ -119,20 +121,42 @@ export default function PODetailPage() {
 
       {/* TAX SUMMARY */}
       <div className="bg-white border rounded p-4 text-right space-y-1">
+        {/* SUBTOTAL */}
+        <p><b>Subtotal: ₹ {po.subtotal?.toFixed(2)}</b></p>
+
+        {/* INDIVIDUAL CHARGES */}
+        {po.charges?.map((c: any) => (
+          <p key={c.id}>
+            {c.title}: ₹ {c.amount?.toFixed(2)}
+          </p>
+        ))}
+
+        {/* TOTAL CHARGES */}
+        <p><b>Total Additional Charges: ₹ {po.additional_charges_total?.toFixed(2)}</b></p>
+
+        {/* TAXABLE */}
+        <p>
+          Taxable Amount: ₹{" "}
+          {(po.subtotal + (po.additional_charges_total || 0)).toFixed(2)}
+        </p>
+
+        {/* TAX */}
         {po.tax_type === "IGST" ? (
           <p>
-            IGST ({po.igst_percent}%): ₹ {po.igst_amount}
+            IGST ({po.igst_percent}%): ₹ {po.igst_amount?.toFixed(2)}
           </p>
         ) : (
           <>
             <p>
-              SGST ({po.sgst_percent}%): ₹ {po.sgst_amount}
+              SGST ({po.sgst_percent}%): ₹ {po.sgst_amount?.toFixed(2)}
             </p>
             <p>
-              CGST ({po.cgst_percent}%): ₹ {po.cgst_amount}
+              CGST ({po.cgst_percent}%): ₹ {po.cgst_amount?.toFixed(2)}
             </p>
           </>
         )}
+
+        {/* FINAL TOTAL */}
         <p className="font-bold text-lg">
           Total: ₹ {Math.round(po.total_amount)}
         </p>

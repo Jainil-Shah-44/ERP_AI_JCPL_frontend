@@ -94,3 +94,38 @@ export const createPOFromRFQ = (payload: {
     }
   );
 };
+
+export const removeVendorFromRFQ = async (
+  rfqId: string,
+  rfqVendorId: string
+) => {
+  return apiFetch(
+    `/rfq/${rfqId}/vendor/${rfqVendorId}`,
+    {
+      method: "DELETE",
+    }
+  );
+};
+
+export const sendRFQEmails = async (
+  rfqId: string,
+  vendorIds: string[]
+) => {
+  return apiFetch(
+    `/rfq/${rfqId}/send-email`,
+    {
+      method: "POST",
+      body: JSON.stringify(vendorIds),
+    }
+  );
+};
+
+export const getVendorQuotation = async (
+  rfq_id: string,
+  rfq_vendor_id: string
+) => {
+  return apiFetch(
+    `/rfq/${rfq_id}/vendor/${rfq_vendor_id}/quotation`,
+    { method: "GET" }
+  );
+};

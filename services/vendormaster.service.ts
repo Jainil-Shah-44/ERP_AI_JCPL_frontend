@@ -39,3 +39,27 @@ export const deleteVendor = (id: string) =>
 export const searchVendors = (query: string) => {
   return apiFetch(`/masters/vendors/search?search=${query}`);
 };
+
+export const getVendorsPaginated = async (
+  search: string = "",
+  page: number = 1,
+  limit: number = 5
+) => {
+  return await apiFetch(
+    `/masters/vendors/paginated?search=${search}&page=${page}&limit=${limit}`,
+    { method: "GET" }
+  );
+};
+
+export const updateVendorEmail = async (
+  vendorId: string,
+  email: string
+) => {
+  return apiFetch(
+    `/masters/vendors/${vendorId}/email`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ email }),
+    }
+  );
+};

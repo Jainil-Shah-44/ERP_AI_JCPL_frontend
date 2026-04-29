@@ -5,6 +5,7 @@ export type Vendor = {
   contact_number: string;
   address_line1: string;
   address_line2: string;
+  email: string;
 };
 
 export type Factory = {

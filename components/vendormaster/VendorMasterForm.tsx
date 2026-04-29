@@ -18,6 +18,7 @@ type VendorFormData = {
   pincode?: string;
   pan_number?: string;
   gst_number?: string;
+  email?: string;
 };
 
 type Props = {
@@ -37,6 +38,7 @@ export default function VendorMasterForm({ initialData, onSubmit }: Props) {
     pincode: initialData?.pincode || "",
     pan_number: initialData?.pan_number || "",
     gst_number: initialData?.gst_number || "",
+    email: initialData?.email || "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -120,6 +122,15 @@ export default function VendorMasterForm({ initialData, onSubmit }: Props) {
             onChange={handleChange}
             placeholder="Enter address line 2"
           />
+
+          <Input
+            name="email"
+            value={form.email || ""}
+            onChange={handleChange}
+            placeholder="Enter email"
+          />
+
+
         </div>
 
         {/* Contact Details */}
